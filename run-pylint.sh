@@ -10,10 +10,12 @@ PYLINT_FLAGS=" \
 --disable=RP0001 \
 --disable=RP0002 \
 --disable=RP0003 \
+--disable=RP0004 \
 --disable=RP0101 \
 --disable=RP0401 \
 --disable=RP0701 \
---disable=RP0801"
+--disable=RP0801 \
+--output-format=colorized"
 
 if [ ! -x "`which pylint 2>/dev/null`" ]; then
     echo "[!] Unable to find pylint, please install it"
