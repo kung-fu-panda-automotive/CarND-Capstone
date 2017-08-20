@@ -1,10 +1,23 @@
+#-------------------------------------------------------------------------------
+# Author: xxx xxx <xxx@xxx.xxx>
+# Date:   xx.xx.xx
+#-------------------------------------------------------------------------------
+
+"""
+STUB
+"""
 
 MIN_NUM = float('-inf')
 MAX_NUM = float('inf')
 
 
 class PID(object):
+    """
+    STUB
+    """
+
     def __init__(self, kp, ki, kd, mn=MIN_NUM, mx=MAX_NUM):
+        #pylint: disable=too-many-arguments
         self.kp = kp
         self.ki = ki
         self.kd = kd
@@ -14,16 +27,24 @@ class PID(object):
         self.int_val = self.last_int_val = self.last_error = 0.
 
     def reset(self):
+        """
+        STUB
+        """
+
         self.int_val = 0.0
         self.last_int_val = 0.0
 
     def step(self, error, sample_time):
+        """
+        STUB
+        """
+
         self.last_int_val = self.int_val
 
-        integral = self.int_val + error * sample_time;
-        derivative = (error - self.last_error) / sample_time;
+        integral = self.int_val + error * sample_time
+        derivative = (error - self.last_error) / sample_time
 
-        y = self.kp * error + self.ki * self.int_val + self.kd * derivative;
+        y = self.kp * error + self.ki * self.int_val + self.kd * derivative
         val = max(self.min, min(y, self.max))
 
         if val > self.max:

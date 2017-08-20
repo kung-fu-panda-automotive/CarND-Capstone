@@ -1,12 +1,10 @@
 #!/usr/bin/env python
+#-------------------------------------------------------------------------------
+# Author: xxx xxx <xxx@xxx.xxx>
+# Date:   xx.xx.xx
+#-------------------------------------------------------------------------------
 
-import rospy
-from geometry_msgs.msg import PoseStamped
-from styx_msgs.msg import Lane, Waypoint
-
-import math
-
-'''
+"""
 This node will publish waypoints from the car's current position to some `x` distance ahead.
 
 As mentioned in the doc, you should ideally first implement a version which does not care
@@ -19,12 +17,34 @@ current status in `/vehicle/traffic_lights` message. You can use this message to
 as well as to verify your TL classifier.
 
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
-'''
+"""
+
+#pylint: disable=fixme
+
+import math
+
+import rospy
+from geometry_msgs.msg import PoseStamped
+from styx_msgs.msg import Lane
+#from styx_msgs.msg import Waypoint
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
+def distance(waypoints, wp1, wp2):
+    """
+    STUB
+    """
+    dist = 0
+    dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+    for i in range(wp1, wp2+1):
+        dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+        wp1 = i
+    return dist
 
 class WaypointUpdater(object):
+    """
+    STUB
+    """
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
@@ -41,35 +61,50 @@ class WaypointUpdater(object):
         rospy.spin()
 
     def pose_cb(self, msg):
+        #pylint: disable=no-self-use
+        """
+        STUB
+        """
         # TODO: Implement
         pass
 
     def waypoints_cb(self, waypoints):
+        #pylint: disable=no-self-use
+        """
+        STUB
+        """
         # TODO: Implement
         pass
 
     def traffic_cb(self, msg):
+        #pylint: disable=no-self-use
+        """
+        STUB
+        """
         # TODO: Callback for /traffic_waypoint message. Implement
         pass
 
     def obstacle_cb(self, msg):
+        #pylint: disable=no-self-use
+        """
+        STUB
+        """
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass
 
     def get_waypoint_velocity(self, waypoint):
+        #pylint: disable=no-self-use
+        """
+        STUB
+        """
         return waypoint.twist.twist.linear.x
 
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
+        #pylint: disable=no-self-use
+        """
+        STUB
+        """
         waypoints[waypoint].twist.twist.linear.x = velocity
-
-    def distance(self, waypoints, wp1, wp2):
-        dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
-        return dist
-
 
 if __name__ == '__main__':
     try:

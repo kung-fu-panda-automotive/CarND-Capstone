@@ -1,11 +1,20 @@
+#-------------------------------------------------------------------------------
+# Author: xxx xxx <xxx@xxx.xxx>
+# Date:   xx.xx.xx
+#-------------------------------------------------------------------------------
+
+"""
+Traffic Light Configuration
+"""
+
 from attrdict import AttrDict
 
-config = AttrDict({
+CONFIG = AttrDict({
     'camera_info': {
-      'focal_length_x':0.97428,
-      'focal_length_y':1.73205,
-      'image_width': 2560,
-      'image_height': 1280
+        'focal_length_x': 0.97428,
+        'focal_length_y': 1.73205,
+        'image_width':    2560,
+        'image_height':   1280
     },
     'light_positions': [
         (1148.56, 1184.65),

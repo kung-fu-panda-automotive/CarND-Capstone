@@ -1,4 +1,6 @@
-
+"""
+Module docstring
+"""
 import rospy
 
 import tf
@@ -36,6 +38,9 @@ TYPE = {
 
 
 class Bridge(object):
+    """
+    Class docstring
+    """
     def __init__(self, conf):
         rospy.init_node('styx_server')
         self.vel = 0.
@@ -122,10 +127,10 @@ class Bridge(object):
     def broadcast_transform(self, name, position, orientation):
         br = tf.TransformBroadcaster()
         br.sendTransform(position,
-            orientation,
-            rospy.Time.now(),
-            name,
-            "world")
+                         orientation,
+                         rospy.Time.now(),
+                         name,
+                         "world")
 
     def publish_odometry(self, data):
         pose = self.create_pose(data['x'], data['y'], data['z'], data['yaw'])
@@ -157,7 +162,8 @@ class Bridge(object):
         self.publishers['obstacle_points'].publish(cloud)
 
     def publish_lidar(self, data):
-        self.publishers['lidar'].publish(self.create_point_cloud_message(zip(data['lidar_x'], data['lidar_y'], data['lidar_z'])))
+        self.publishers['lidar'].publish(self.create_point_cloud_message(
+            zip(data['lidar_x'], data['lidar_y'], data['lidar_z'])))
 
     def publish_traffic(self, data):
         x, y, z = data['light_pos_x'], data['light_pos_y'], data['light_pos_z'],
