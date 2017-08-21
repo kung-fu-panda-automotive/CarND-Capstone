@@ -42,10 +42,10 @@ roslaunch launch/styx.launch
 ```
 4. Run the simulator
 ```bash
-unzip lights_no_cars.zip
-cd lights_no_cars
-chmod +x ros_test.x86_64
-./ros_test.x86_64
+unzip linux_sys_int.zip (if you use the linux simulator)
+cd linux_sys_int
+chmod +x system_integration.x86_64
+./system_integration.x86_64
 ```
 
 
