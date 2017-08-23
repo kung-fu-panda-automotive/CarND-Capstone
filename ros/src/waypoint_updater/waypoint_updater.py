@@ -26,8 +26,8 @@ import math
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane
-from styx_msgs.msg import Waypoint
-#from styx_msgs.msg import TrafficLight 
+#from styx_msgs.msg import Waypoint
+#from styx_msgs.msg import TrafficLight
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
@@ -44,14 +44,17 @@ def distance(waypoints, wp1, wp2):
 
 # Using code from path planning project
 def closest_waypoint_(x, y, wpx, wpy, wp_len):
-    closestLen = 100000.0;
-    closestWaypoint = 0;
+    """
+    STUB
+    """
+    closestLen = 100000.0
+    closestWaypoint = 0
 
     for i in range(wp_len):
         wp__x = wpx[i]
         wp__y = wpy[i]
         dist = math.sqrt((wp__x-x)**2+(wp__y-y)**2)
-        if (dist < closestLen):
+        if dist < closestLen:
             closestLen = dist
             closestWaypoint = i
     return closestWaypoint
@@ -73,65 +76,56 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        # TODO: Add other member variables you need below
 	# Adding arrays for x-,y-coordinates, waypoint length and entire waypoint info for later use
-	wp_x = []
-	wp_y = []
-	wp = []
-	wp_len = 0
+        self.wp_x = []
+        self.wp_y = []
+        self.wp = []
+        self.wp_len = 0
 
         rospy.spin()
 
     def pose_cb(self, msg):
-        #pylint: disable=no-self-use
         """
         STUB
         """
-        # TODO: Implement
 	# Using the position data from the sim and the way_point's x-,y-coordinates to calculate
-	# the closest waypoint to the car 
-	pose_x = msg.pose.position.x
+	# the closest waypoint to the car
+        pose_x = msg.pose.position.x
         pose_y = msg.pose.position.y
-	closest_waypoint = closest_waypoint_(pose_x, pose_y, self.wp_x, self.wp_y, self.wp_len)
-	
+        closest_waypoint = closest_waypoint_(pose_x, pose_y, self.wp_x, self.wp_y, self.wp_len)
+
 	# Appending all waypoint information of waypoints infront of the car to waypoints_ahead
-	waypoints_ahead = []
-	for i in range(LOOKAHEAD_WPS):
-    	    waypoints_ahead.append(self.wp[closest_waypoint+i])
+        waypoints_ahead = []
+        for i in range(LOOKAHEAD_WPS):
+            waypoints_ahead.append(self.wp[closest_waypoint+i])
 
 	# Structure the waypoint data to match the desired output of Lane.msg
-	lane = Lane()
-	lane.waypoints = waypoints_ahead
-	lane.header.stamp = rospy.Time(0)
+        lane = Lane()
+        lane.waypoints = waypoints_ahead
+        lane.header.stamp = rospy.Time(0)
         lane.header.frame_id = msg.header.frame_id
 
 	# Publish the final waypoints
-	self.final_waypoints_pub.publish(lane)
-
-        pass
+        self.final_waypoints_pub.publish(lane)
 
     def waypoints_cb(self, waypoints):
-        #pylint: disable=no-self-use
         """
         STUB
         """
-        # TODO: Implement
 	# Adding the waypoints data to new_wp_x, new_wp_y, new_wp and assigning them to wp_x, wp_y, wp
-	new_wp_x = []
+        new_wp_x = []
         new_wp_y = []
-	new_wp = []
-	new_wp_len = len(waypoints.waypoints)
+        new_wp = []
+        new_wp_len = len(waypoints.waypoints)
         for waypoint in waypoints.waypoints:
             new_wp_x.append(waypoint.pose.pose.position.x)
             new_wp_y.append(waypoint.pose.pose.position.y)
-	    new_wp.append(waypoint)
+            new_wp.append(waypoint)
 
         self.wp_x = new_wp_x
         self.wp_y = new_wp_y
-	self.wp = new_wp
-	self.wp_len = new_wp_len
-
-        pass
+        self.wp = new_wp
+        self.wp_len = new_wp_len
 
     def traffic_cb(self, msg):
         #pylint: disable=no-self-use
