@@ -112,13 +112,13 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         #pylint: disable=no-self-use
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        rospy.loginfo('WaypointUpdater: traffic waypoint received')
+        # Consider traffic light when setting waypoint velocity
 
     def obstacle_cb(self, msg):
         #pylint: disable=no-self-use
-        # TODO: Callback for /obstacle_waypoint message. We will implement it later
-        pass
+        rospy.loginfo('WaypointUpdater: obstacle waypoints received'
+        # Consider obstacles when setting waypoint velocity
 
     def get_waypoint_velocity(self, waypoint):
         #pylint: disable=no-self-use
