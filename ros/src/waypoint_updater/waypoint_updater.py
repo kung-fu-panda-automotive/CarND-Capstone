@@ -25,8 +25,7 @@ import math
 
 import rospy
 from geometry_msgs.msg import PoseStamped
-from styx_msgs.msg import Lane
-#from styx_msgs.msg import Waypoint
+from styx_msgs.msg import Lane, Waypoint
 #from styx_msgs.msg import TrafficLight
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
@@ -70,10 +69,18 @@ def get_closest_waypoint_index(my_position, waypoints):
     return best_index
 
 
-def get_next_waypoints_wrapped(waypoints, index, lookahead = LOOKAHEAD_WPS):
+def get_next_waypoints_wrapped(waypoints, i, n = LOOKAHEAD_WPS):
     #TODO: Make this function more efficient
-    waypoints_longer = waypoints + waypoints[:lookahead]
-    return waypoints_longer[index: (index + lookahead)]
+    waypoints_longer = waypoints + waypoints[:n]
+    return waypoints_longer[i: (i + n)]
+
+
+def make_lane_object(frame_id, waypoints):
+    lane = Lane()
+    lane.header.frame_id = frame_id
+    lane.waypoints = waypoints
+    lane.header.stamp = rospy.Time.now()
+    return lane
 
 
 class WaypointUpdater(object):
@@ -104,12 +111,23 @@ class WaypointUpdater(object):
         # store location (x, y)
         self.position = msg.pose.position
 
-        # get closest waypoint
-        # make list of n waypoints ahead of vehicle, n = LOOKAHEAD_WPS
-        # set velocity of all waypoints 
-        
-        # make lane data structure to be published
-        # publish final waypoints
+        if self.base_waypoints:
+
+            # get closest waypoint
+            index = get_closest_waypoints_index(self.position, self.base_waypoints)
+
+            # make list of n waypoints ahead of vehicle,
+            lookahead_waypoints = get_next_waypoints_wrapped(waypoints = self.base_waypoints, i = index, n = LOOKAHEAD_WPS)
+
+            # set velocity of all waypoints
+            for waypoint in lookahead_waypoints:
+                waypoint.twist.twist.linear.x = 8.94 #20mph in meters per second
+            
+            # make lane data structure to be published
+            lane = make_lane_object(msg.header.framed_id, lookahead_waypoints)
+            
+            # publish final waypoints
+            self.final_waypoints_pub.publish(lane)
 
     def base_waypoints_cb(self, waypoints):
         #msg: styx_msgs.msg.lane
@@ -130,10 +148,9 @@ class WaypointUpdater(object):
         #pylint: disable=no-self-use
         return waypoint.twist.twist.linear.x
 
-    def set_waypoint_velocity(self, waypoints, waypoint, velocity):
+    def set_waypoint_velocity(self, waypoint, velocity):
         #pylint: disable=no-self-use
-        waypoints[waypoint].twist.twist.linear.x = velocity
-
+        waypoint.twist.twist.linear.x = velocity
 
 if __name__ == '__main__':
     try:
