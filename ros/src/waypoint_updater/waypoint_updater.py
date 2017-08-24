@@ -70,6 +70,12 @@ def get_closest_waypoint_index(my_position, waypoints):
     return best_index
 
 
+def get_next_waypoints_wrapped(waypoints, index, lookahead = LOOKAHEAD_WPS):
+    #TODO: Make this function more efficient
+    waypoints_longer = waypoints + waypoints[:lookahead]
+    return waypoints_longer[index: (index + lookahead)]
+
+
 class WaypointUpdater(object):
 
     def __init__(self):
