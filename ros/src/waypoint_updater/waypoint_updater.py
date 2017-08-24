@@ -116,7 +116,7 @@ class WaypointUpdater(object):
             # get closest waypoint
             index = get_closest_waypoints_index(self.position, self.base_waypoints)
 
-            # make list of n waypoints ahead of vehicle,
+            # make list of n waypoints ahead of vehicle
             lookahead_waypoints = get_next_waypoints_wrapped(waypoints = self.base_waypoints, i = index, n = LOOKAHEAD_WPS)
 
             # set velocity of all waypoints
@@ -126,7 +126,7 @@ class WaypointUpdater(object):
             # make lane data structure to be published
             lane = make_lane_object(msg.header.framed_id, lookahead_waypoints)
             
-            # publish final waypoints
+            # publish the subset of waypoints ahead
             self.final_waypoints_pub.publish(lane)
 
     def base_waypoints_cb(self, waypoints):
