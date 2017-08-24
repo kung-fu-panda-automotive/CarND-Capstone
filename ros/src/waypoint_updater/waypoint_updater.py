@@ -67,29 +67,29 @@ def get_closest_waypoint_index(my_position, waypoints):
         if gap < best_gap:
             best_index, best_gap = i, gap
 
-
 return best_index
+
 
 class WaypointUpdater(object):
 
     def __init__(self):
+
         rospy.init_node('waypoint_updater')
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-	#rospy.Subscriber('/traffic_waypoint', TrafficLight, self.traffic_cb)
-	#rospy.Subscriber('/obstacle_waypoint', ??? , self.obstacle_cb)
+        rospy.Subscriber('/base_waypoints', Lane, self.base_waypoints_cb)
+        #rospy.Subscriber('/obstacle_waypoints', PoseStamped, self.obstacle_cb)
+        #rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-	# Adding arrays for x-,y-coordinates, waypoint length and entire waypoint info for later use
-        self.wp_x = []
-        self.wp_y = []
-        self.wp = []
-        self.wp_len = 0
+        # Current location (x,y) of the vehicle
+        self.position = None
 
+        # Current base waypoints from Lane object
+        self.base_waypoints = []
+
+        rospy.loginfo('WaypointUpdater Initialized.')
         rospy.spin()
 
     def pose_cb(self, msg):
@@ -113,7 +113,7 @@ class WaypointUpdater(object):
 	# Publish the final waypoints
         self.final_waypoints_pub.publish(lane)
 
-    def waypoints_cb(self, waypoints):
+    def base_waypoints_cb(self, waypoints):
 	# Adding the waypoints data to new_wp_x, new_wp_y, new_wp and assigning them to wp_x, wp_y, wp
         new_wp_x = []
         new_wp_y = []
