@@ -61,9 +61,7 @@ def closest_waypoint_(x, y, wpx, wpy, wp_len):
 
 
 class WaypointUpdater(object):
-    """
-    STUB
-    """
+
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
@@ -85,9 +83,6 @@ class WaypointUpdater(object):
         rospy.spin()
 
     def pose_cb(self, msg):
-        """
-        STUB
-        """
 	# Using the position data from the sim and the way_point's x-,y-coordinates to calculate
 	# the closest waypoint to the car
         pose_x = msg.pose.position.x
@@ -109,9 +104,6 @@ class WaypointUpdater(object):
         self.final_waypoints_pub.publish(lane)
 
     def waypoints_cb(self, waypoints):
-        """
-        STUB
-        """
 	# Adding the waypoints data to new_wp_x, new_wp_y, new_wp and assigning them to wp_x, wp_y, wp
         new_wp_x = []
         new_wp_y = []
@@ -129,32 +121,20 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         #pylint: disable=no-self-use
-        """
-        STUB
-        """
         # TODO: Callback for /traffic_waypoint message. Implement
         pass
 
     def obstacle_cb(self, msg):
         #pylint: disable=no-self-use
-        """
-        STUB
-        """
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass
 
     def get_waypoint_velocity(self, waypoint):
         #pylint: disable=no-self-use
-        """
-        STUB
-        """
         return waypoint.twist.twist.linear.x
 
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         #pylint: disable=no-self-use
-        """
-        STUB
-        """
         waypoints[waypoint].twist.twist.linear.x = velocity
 
 
