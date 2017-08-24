@@ -55,7 +55,7 @@ def get_closest_waypoint_index(my_position, waypoints):
     waypoints: list of styx_msgs.msg.Waypoint instances
     returns index of the closest waypoint in the list waypoints
     """
-    best_gap = 1000000000000000000000000000000.0 # Really big number
+    best_gap = float('inf')
     best_index = 0
 
     for i, waypoint in enumerate(waypoints):
