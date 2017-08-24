@@ -116,7 +116,7 @@ class WaypointUpdater(object):
     def base_waypoints_cb(self, waypoints):
         #msg: styx_msgs.msg.lane
         rospy.loginfo('WaypointUpdater: base waypoints received')
-        self.waypoints = msg.waypoints 
+        self.base_waypoints = msg.waypoints 
 
     def traffic_cb(self, msg):
         #pylint: disable=no-self-use
