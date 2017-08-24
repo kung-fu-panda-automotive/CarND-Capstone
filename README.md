@@ -1,7 +1,7 @@
 
 Carla Driver
 ============
-- This is the capstone project for Udacity's Self Driving Car Nanodegree. This is code is aimed to run the real self-drive vehicle.
+- This is the capstone project for Udacity's Self Driving Car Nanodegree. This code is aimed to run in an actual physical self-drive vehicle.
  
 [![Build Status](https://travis-ci.org/kung-fu-panda-automotive/carla-driver.svg?branch=master)](https://travis-ci.org/kung-fu-panda-automotive/carla-driver)
 
