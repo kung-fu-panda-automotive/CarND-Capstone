@@ -15,8 +15,6 @@ Once you have created dbw_node, you will update this node to use the status of t
 Please note that our simulator also provides the exact location of traffic lights and their
 current status in `/vehicle/traffic_lights` message. You can use this message to build this node
 as well as to verify your TL classifier.
-
-TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 """
 
 #pylint: disable=fixme
@@ -31,131 +29,133 @@ from styx_msgs.msg import Lane
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
-def distance(waypoints, wp1, wp2):
-    """
-    STUB
-    """
-    dist = 0
-    dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-    for i in range(wp1, wp2+1):
-        dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-        wp1 = i
-    return dist
+def distance(waypoints, p1, p2):
+    """ Get total distance between two waypoints given their index"""
+    gap = 0
+    euclidean_distance = lambda a, b: math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2  + (a.z - b.z)**2)
 
-# Using code from path planning project
-def closest_waypoint_(x, y, wpx, wpy, wp_len):
-    """
-    STUB
-    """
-    closestLen = 100000.0
-    closestWaypoint = 0
+    for i in range(p1, p2+1):
+        a = waypoints[p1].pose.pose.position
+        b = waypoints[i].pose.pose.position
+        gap += euclidean_distance(a, b)
+        p1 = i
+    return gap
 
-    for i in range(wp_len):
-        wp__x = wpx[i]
-        wp__y = wpy[i]
-        dist = math.sqrt((wp__x-x)**2+(wp__y-y)**2)
-        if dist < closestLen:
-            closestLen = dist
-            closestWaypoint = i
-    return closestWaypoint
+
+def get_square_gap(a, b):
+    """Returns squared euclidean distance between two 2D points"""
+    dx = a.x - b.x
+    dy = a.y - b.y
+    return dx * dx + dy * dy
+
+
+def get_closest_waypoint_index(my_position, waypoints):
+    """
+    position: geometry_msg.msgs.Pose instance
+    waypoints: list of styx_msgs.msg.Waypoint instances
+    returns index of the closest waypoint in the list waypoints
+    """
+    best_gap = float('inf')
+    best_index = 0
+
+    for i, waypoint in enumerate(waypoints):
+
+        other_position = waypoint.pose.pose.position
+        gap = get_square_gap(my_position, other_position)
+        #TODO: should we use something similar to distance() instead of get_square_gap() instead?
+
+        if gap < best_gap:
+            best_index, best_gap = i, gap
+
+    return best_index
+
+
+def get_next_waypoints(waypoints, i, n):
+    """Returns a list of n waypoints ahead of the vehicle"""
+    m = min(len(waypoints), i + n)
+    return waypoints[i:m]
+
+
+def make_lane_object(frame_id, waypoints):
+    """Lane object contains the list of final waypoints ahead with velocity"""
+    lane = Lane()
+    lane.header.frame_id = frame_id
+    lane.waypoints = waypoints
+    lane.header.stamp = rospy.Time.now()
+    return lane
+
+def get_waypoint_velocity(waypoint):
+    """Get velocity of a given waypoints"""
+    return waypoint.twist.twist.linear.x
+
+def set_waypoint_velocity(waypoint, velocity):
+    """sets the velocity of a given waypoint"""
+    waypoint.twist.twist.linear.x = velocity
 
 
 class WaypointUpdater(object):
-    """
-    STUB
-    """
+    """Given the position and map this object returns
+       points with target velocities representing path ahead"""
+
     def __init__(self):
         rospy.init_node('waypoint_updater')
-
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-	#rospy.Subscriber('/traffic_waypoint', TrafficLight, self.traffic_cb)
-	#rospy.Subscriber('/obstacle_waypoint', ??? , self.obstacle_cb)
+        rospy.Subscriber('/base_waypoints', Lane, self.base_waypoints_cb)
+        #rospy.Subscriber('/obstacle_waypoints', PoseStamped, self.obstacle_cb)
+        #rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-	# Adding arrays for x-,y-coordinates, waypoint length and entire waypoint info for later use
-        self.wp_x = []
-        self.wp_y = []
-        self.wp = []
-        self.wp_len = 0
+        # Current location (x,y) of the vehicle
+        self.position = None
+
+        # Current list of base waypoints from Lane object
+        self.base_waypoints = None
 
         rospy.spin()
 
     def pose_cb(self, msg):
-        """
-        STUB
-        """
-	# Using the position data from the sim and the way_point's x-,y-coordinates to calculate
-	# the closest waypoint to the car
-        pose_x = msg.pose.position.x
-        pose_y = msg.pose.position.y
-        closest_waypoint = closest_waypoint_(pose_x, pose_y, self.wp_x, self.wp_y, self.wp_len)
+        """ Publishes waypoints with target velocities whenever the vehicle location is received"""
+        rospy.loginfo('WaypointUpdater: Current Pose received.')
 
-	# Appending all waypoint information of waypoints infront of the car to waypoints_ahead
-        waypoints_ahead = []
-        for i in range(LOOKAHEAD_WPS):
-            waypoints_ahead.append(self.wp[closest_waypoint+i])
+        # store location (x, y)
+        self.position = msg.pose.position
+        frame_id = msg.header.frame_id
 
-	# Structure the waypoint data to match the desired output of Lane.msg
-        lane = Lane()
-        lane.waypoints = waypoints_ahead
-        lane.header.stamp = rospy.Time(0)
-        lane.header.frame_id = msg.header.frame_id
+        if self.base_waypoints:
 
-	# Publish the final waypoints
-        self.final_waypoints_pub.publish(lane)
+            # get closest waypoint
+            index = get_closest_waypoint_index(self.position, self.base_waypoints)
 
-    def waypoints_cb(self, waypoints):
-        """
-        STUB
-        """
-	# Adding the waypoints data to new_wp_x, new_wp_y, new_wp and assigning them to wp_x, wp_y, wp
-        new_wp_x = []
-        new_wp_y = []
-        new_wp = []
-        new_wp_len = len(waypoints.waypoints)
-        for waypoint in waypoints.waypoints:
-            new_wp_x.append(waypoint.pose.pose.position.x)
-            new_wp_y.append(waypoint.pose.pose.position.y)
-            new_wp.append(waypoint)
+            # make list of n waypoints ahead of vehicle
+            lookahead_waypoints = get_next_waypoints(self.base_waypoints, index, LOOKAHEAD_WPS)
 
-        self.wp_x = new_wp_x
-        self.wp_y = new_wp_y
-        self.wp = new_wp
-        self.wp_len = new_wp_len
+            # set velocity of all waypoints
+            for waypoint in lookahead_waypoints:
+                waypoint.twist.twist.linear.x = 4.47 #10mph in meters per second
+
+            # make lane data structure to be published
+            lane = make_lane_object(frame_id, lookahead_waypoints)
+
+            # publish the subset of waypoints ahead
+            self.final_waypoints_pub.publish(lane)
+
+    def base_waypoints_cb(self, msg):
+        """We store the given map """
+        #msg: styx_msgs.msg.lane
+        rospy.loginfo('WaypointUpdater: base waypoints received')
+        self.base_waypoints = msg.waypoints
 
     def traffic_cb(self, msg):
         #pylint: disable=no-self-use
-        """
-        STUB
-        """
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        "Consider traffic light when setting waypoint velocity"
+        rospy.loginfo('WaypointUpdater: traffic waypoint received')
 
     def obstacle_cb(self, msg):
         #pylint: disable=no-self-use
-        """
-        STUB
-        """
-        # TODO: Callback for /obstacle_waypoint message. We will implement it later
-        pass
-
-    def get_waypoint_velocity(self, waypoint):
-        #pylint: disable=no-self-use
-        """
-        STUB
-        """
-        return waypoint.twist.twist.linear.x
-
-    def set_waypoint_velocity(self, waypoints, waypoint, velocity):
-        #pylint: disable=no-self-use
-        """
-        STUB
-        """
-        waypoints[waypoint].twist.twist.linear.x = velocity
+        "Consider obstacles when setting waypoint velocity"
+        rospy.loginfo('WaypointUpdater: obstacle waypoints received')
+        # Consider obstacles when setting waypoint velocity
 
 
 if __name__ == '__main__':
