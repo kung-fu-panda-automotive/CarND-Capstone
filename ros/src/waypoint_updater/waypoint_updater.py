@@ -42,23 +42,33 @@ def distance(waypoints, wp1, wp2):
         wp1 = i
     return dist
 
-# Using code from path planning project
-def closest_waypoint_(x, y, wpx, wpy, wp_len):
-    """
-    STUB
-    """
-    closestLen = 100000.0
-    closestWaypoint = 0
 
-    for i in range(wp_len):
-        wp__x = wpx[i]
-        wp__y = wpy[i]
-        dist = math.sqrt((wp__x-x)**2+(wp__y-y)**2)
-        if dist < closestLen:
-            closestLen = dist
-            closestWaypoint = i
-    return closestWaypoint
+def get_square_gap(a, b):
+    dx = a.x - b.x
+    dy = a.y - b.y
+    return dx * dx + dy * dy
 
+
+def get_closest_waypoint_index(my_position, waypoints):
+    """
+    position: geometry_msg.msgs.Pose instance
+    waypoints: list of styx_msgs.msg.Waypoint instances
+    returns index of the closest waypoint in the list waypoints
+    """
+    
+    best_gap = 1000000000000000000000000000000.0 # Really big number
+    best_index = 0 
+
+    for i, point in enumerate(waypoints):
+
+        other_position = waypoints.pose.pose.position 
+        gap = get_square_gap(my_position, other_position)
+
+        if gap < best_gap:
+            best_index, best_gap = i, gap
+
+
+return best_index
 
 class WaypointUpdater(object):
 
