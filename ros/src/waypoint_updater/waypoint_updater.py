@@ -93,25 +93,17 @@ class WaypointUpdater(object):
         rospy.spin()
 
     def pose_cb(self, msg):
-	# Using the position data from the sim and the way_point's x-,y-coordinates to calculate
-	# the closest waypoint to the car
-        pose_x = msg.pose.position.x
-        pose_y = msg.pose.position.y
-        closest_waypoint = closest_waypoint_(pose_x, pose_y, self.wp_x, self.wp_y, self.wp_len)
+        rospy.loginfo('WaypointUpdater: Current Pose received.')
 
-	# Appending all waypoint information of waypoints infront of the car to waypoints_ahead
-        waypoints_ahead = []
-        for i in range(LOOKAHEAD_WPS):
-            waypoints_ahead.append(self.wp[closest_waypoint+i])
+        # store location (x, y)
+        self.position = msg.pose.position
 
-	# Structure the waypoint data to match the desired output of Lane.msg
-        lane = Lane()
-        lane.waypoints = waypoints_ahead
-        lane.header.stamp = rospy.Time(0)
-        lane.header.frame_id = msg.header.frame_id
-
-	# Publish the final waypoints
-        self.final_waypoints_pub.publish(lane)
+        # get closest waypoint
+        # make list of n waypoints ahead of vehicle, n = LOOKAHEAD_WPS
+        # set velocity of all waypoints 
+        
+        # make lane data structure to be published
+        # publish final waypoints
 
     def base_waypoints_cb(self, waypoints):
         #msg: styx_msgs.msg.lane
