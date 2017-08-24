@@ -86,8 +86,8 @@ class WaypointUpdater(object):
         # Current location (x,y) of the vehicle
         self.position = None
 
-        # Current base waypoints from Lane object
-        self.base_waypoints = []
+        # Current list of base waypoints from Lane object
+        self.base_waypoints = None
 
         rospy.loginfo('WaypointUpdater Initialized.')
         rospy.spin()
@@ -114,20 +114,9 @@ class WaypointUpdater(object):
         self.final_waypoints_pub.publish(lane)
 
     def base_waypoints_cb(self, waypoints):
-	# Adding the waypoints data to new_wp_x, new_wp_y, new_wp and assigning them to wp_x, wp_y, wp
-        new_wp_x = []
-        new_wp_y = []
-        new_wp = []
-        new_wp_len = len(waypoints.waypoints)
-        for waypoint in waypoints.waypoints:
-            new_wp_x.append(waypoint.pose.pose.position.x)
-            new_wp_y.append(waypoint.pose.pose.position.y)
-            new_wp.append(waypoint)
-
-        self.wp_x = new_wp_x
-        self.wp_y = new_wp_y
-        self.wp = new_wp
-        self.wp_len = new_wp_len
+        #msg: styx_msgs.msg.lane
+        rospy.loginfo('WaypointUpdater: base waypoints received')
+        self.waypoints = msg.waypoints 
 
     def traffic_cb(self, msg):
         #pylint: disable=no-self-use
