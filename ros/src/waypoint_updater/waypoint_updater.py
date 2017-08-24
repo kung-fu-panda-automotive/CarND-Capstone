@@ -70,11 +70,10 @@ def get_closest_waypoint_index(my_position, waypoints):
     return best_index
 
 
-def get_next_waypoints_wrapped(waypoints, i, n):
+def get_next_waypoints(waypoints, i, n):
     """Returns a list of n waypoints ahead of the vehicle"""
-    #TODO: Make this function more efficient
-    waypoints_longer = waypoints + waypoints[:n]
-    return waypoints_longer[i: (i + n)]
+    m = min(len(waypoints), i + n)
+    return waypoints[i:m]
 
 
 def make_lane_object(frame_id, waypoints):
@@ -131,7 +130,7 @@ class WaypointUpdater(object):
             index = get_closest_waypoint_index(self.position, self.base_waypoints)
 
             # make list of n waypoints ahead of vehicle
-            lookahead_waypoints = get_next_waypoints_wrapped(self.base_waypoints, index, LOOKAHEAD_WPS)
+            lookahead_waypoints = get_next_waypoints(self.base_waypoints, index, LOOKAHEAD_WPS)
 
             # set velocity of all waypoints
             for waypoint in lookahead_waypoints:
