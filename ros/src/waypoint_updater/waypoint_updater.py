@@ -98,7 +98,6 @@ class WaypointUpdater(object):
        points with target velocities representing path ahead"""
 
     def __init__(self):
-        print "initializing waypoints..."
         rospy.init_node('waypoint_updater')
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.base_waypoints_cb)
@@ -114,8 +113,6 @@ class WaypointUpdater(object):
         self.base_waypoints = None
 
         rospy.spin()
-        rospy.loginfo('WaypointUpdater Initialized.')
-        print "...Waypoints initalized"
 
     def pose_cb(self, msg):
         """ Publishes waypoints with target velocities whenever the vehicle location is received"""
