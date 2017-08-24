@@ -67,7 +67,7 @@ def get_closest_waypoint_index(my_position, waypoints):
         if gap < best_gap:
             best_index, best_gap = i, gap
 
-return best_index
+    return best_index
 
 
 class WaypointUpdater(object):
