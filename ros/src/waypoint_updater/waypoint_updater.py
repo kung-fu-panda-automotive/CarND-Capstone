@@ -123,7 +123,7 @@ class WaypointUpdater(object):
 
         # store location (x, y)
         self.position = msg.pose.position
-        frame_id = msg.header.framed_id
+        frame_id = msg.header.frame_id
 
         if self.base_waypoints:
 
@@ -135,7 +135,7 @@ class WaypointUpdater(object):
 
             # set velocity of all waypoints
             for waypoint in lookahead_waypoints:
-                waypoint.twist.twist.linear.x = 8.94 #20mph in meters per second
+                waypoint.twist.twist.linear.x = 4.47 #10mph in meters per second
 
             # make lane data structure to be published
             lane = make_lane_object(frame_id, lookahead_waypoints)
