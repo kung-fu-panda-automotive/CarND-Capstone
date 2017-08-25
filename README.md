@@ -43,14 +43,21 @@ git clone https://github.com/udacity/carla-driver.git
 cd carla-driver
 pip install -r requirements.txt
 ```
-3. Make and run styx
+
+3. Install ROS dependencies
+```bash
+sudo apt install ros-kinetic-pcl-ros
+```
+
+4. Make and run styx
 ```bash
 cd ros
 catkin_make
 source devel/setup.sh
 roslaunch launch/styx.launch
 ```
-4. Run the simulator
+
+5. Run the simulator
 ```bash
 unzip linux_sys_int.zip (if you use linux)
 cd linux_sys_int
