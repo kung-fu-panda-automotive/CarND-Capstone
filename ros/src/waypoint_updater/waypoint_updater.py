@@ -20,7 +20,8 @@ as well as to verify your TL classifier.
 #pylint: disable=fixme
 
 import math
-
+import numpy as np
+#import tf
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane
@@ -69,6 +70,24 @@ def get_closest_waypoint_index(my_position, waypoints):
 
     return best_index
 
+def get_next_waypoint_index(my_position, my_yaw, waypoints):
+    """
+    position: geometry_msg.msgs.pose.position instance
+    orientation: geometry_msg.msgs.pose.orientation instance
+    waypoints: list of styx_msgs.msg.Waypoint instances
+    returns index of the next waypoint in the list waypoints
+    """
+    index = get_closest_waypoint_index(my_position, waypoints)
+
+    waypoint_x = waypoints[index].pose.pose.position.x
+    waypoint_y = waypoints[index].pose.pose.position.y
+    heading = math.atan2((waypoint_y-my_position.y), (waypoint_x-my_position.x))
+    angle = math.fabs(my_yaw-heading)
+
+    if angle > math.pi*0.25:
+        index = index + 1
+
+    return index
 
 def get_next_waypoints(waypoints, i, n):
     """Returns a list of n waypoints ahead of the vehicle"""
@@ -92,6 +111,20 @@ def set_waypoint_velocity(waypoint, velocity):
     """sets the velocity of a given waypoint"""
     waypoint.twist.twist.linear.x = velocity
 
+def fit_polynomial(waypoints, degree):
+    """fits a polynomial for given waypoints"""
+    x_coords = [waypoint.pose.pose.position.x for waypoint in waypoints]
+    y_coords = [waypoint.pose.pose.position.y for waypoint in waypoints]
+    return np.polyfit(x_coords, y_coords, degree)
+
+def calculateRCurve(coeffs, X):
+    """calculates the radius of curvature"""
+    if coeffs is None:
+        return None
+    a = coeffs[0]
+    b = coeffs[1]
+    return (1 + (2*a * X + b) **2) **1.5 / np.absolute(2 * a)
+
 
 class WaypointUpdater(object):
     """Given the position and map this object returns
@@ -109,6 +142,11 @@ class WaypointUpdater(object):
         # Current location (x,y) of the vehicle
         self.position = None
 
+        # Current orientation of the vehicle
+        self.orientation = None
+        self.yaw = None
+        self.curvature = None
+
         # Current list of base waypoints from Lane object
         self.base_waypoints = None
 
@@ -120,6 +158,12 @@ class WaypointUpdater(object):
 
         # store location (x, y)
         self.position = msg.pose.position
+
+        # store orientation
+        self.orientation = msg.pose.orientation
+        #self.euler = tf.transformations.euler_from_quaternion(self.orientation)
+        #self.yaw = euler[2]
+
         frame_id = msg.header.frame_id
 
         if self.base_waypoints:
@@ -127,12 +171,30 @@ class WaypointUpdater(object):
             # get closest waypoint
             index = get_closest_waypoint_index(self.position, self.base_waypoints)
 
+            # get next waypoint
+            #index2 = get_next_waypoint_index(self.position, self.yaw, self.base_waypoints)
+
             # make list of n waypoints ahead of vehicle
             lookahead_waypoints = get_next_waypoints(self.base_waypoints, index, LOOKAHEAD_WPS)
 
             # set velocity of all waypoints
             for waypoint in lookahead_waypoints:
                 waypoint.twist.twist.linear.x = 4.47 #10mph in meters per second
+
+            # fit a polynomial path
+            coefficients = fit_polynomial(lookahead_waypoints, 2)
+
+            # calculate radius curvature
+            curvature = []
+            for waypoint in lookahead_waypoints:
+                x = waypoint.pose.pose.position.x
+                radius = calculateRCurve(coefficients, x)
+                curvature.append(radius)
+
+            # set angular velocity of all waypoints
+            for waypoint in lookahead_waypoints:
+                for i in range(LOOKAHEAD_WPS):
+                    waypoint.twist.twist.angular.x = waypoint.twist.twist.linear.x/curvature[i]
 
             # make lane data structure to be published
             lane = make_lane_object(frame_id, lookahead_waypoints)
