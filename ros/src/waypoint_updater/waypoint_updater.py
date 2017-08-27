@@ -20,7 +20,7 @@ as well as to verify your TL classifier.
 #pylint: disable=fixme
 
 import math
-
+import numpy as np
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane
@@ -84,13 +84,31 @@ def make_lane_object(frame_id, waypoints):
     lane.header.stamp = rospy.Time.now()
     return lane
 
+
 def get_waypoint_velocity(waypoint):
     """Get velocity of a given waypoints"""
     return waypoint.twist.twist.linear.x
 
+
 def set_waypoint_velocity(waypoint, velocity):
     """sets the velocity of a given waypoint"""
     waypoint.twist.twist.linear.x = velocity
+
+
+def fit_polynomial(waypoints, degree):
+    """fits a polynomial for given waypoints"""
+    x_coords = [waypoint.pose.pose.position.x for waypoint in waypoints]
+    y_coords = [waypoint.pose.pose.position.y for waypoint in waypoints]
+    return np.polyfit(x_coords, y_coords, degree)
+
+
+def calculateRCurve(coeffs, X):
+    """calculates the radius of curvature"""
+    if coeffs is None:
+        return None
+    a = coeffs[0]
+    b = coeffs[1]
+    return (1 + (2*a * X + b) **2) **1.5 / np.absolute(2 * a)
 
 
 class WaypointUpdater(object):
@@ -120,6 +138,7 @@ class WaypointUpdater(object):
 
         # store location (x, y)
         self.position = msg.pose.position
+
         frame_id = msg.header.frame_id
 
         if self.base_waypoints:
@@ -130,9 +149,19 @@ class WaypointUpdater(object):
             # make list of n waypoints ahead of vehicle
             lookahead_waypoints = get_next_waypoints(self.base_waypoints, index, LOOKAHEAD_WPS)
 
+            # fit a polynomial path
+            coefficients = fit_polynomial(lookahead_waypoints, 2)
+
             # set velocity of all waypoints
+            threshold = 0.001
             for waypoint in lookahead_waypoints:
                 waypoint.twist.twist.linear.x = 4.47 #10mph in meters per second
+                w_x = waypoint.pose.pose.position.x
+                curvature = calculateRCurve(coefficients, w_x)
+                if curvature > threshold:
+                    waypoint.twist.twist.angular.z = waypoint.twist.twist.linear.x/curvature
+                else:
+                    waypoint.twist.twist.angular.z = 0
 
             # make lane data structure to be published
             lane = make_lane_object(frame_id, lookahead_waypoints)
