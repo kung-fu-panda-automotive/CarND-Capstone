@@ -1,10 +1,10 @@
 #-------------------------------------------------------------------------------
-# Author: xxx xxx <xxx@xxx.xxx>
-# Date:   xx.xx.xx
+# Author: Kostas Oreopoulos <kostas.oreopoulos@gmail.com>
+# Date:   28.08.17
 #-------------------------------------------------------------------------------
 
 """
-STUB
+A simple PID controller
 """
 
 MIN_NUM = float('-inf')
@@ -13,10 +13,10 @@ MAX_NUM = float('inf')
 
 class PID(object):
     """
-    STUB
+    A simple PID controller object
     """
 
-    def __init__(self, kp, ki, kd, mn=MIN_NUM, mx=MAX_NUM):
+    def __init__(self, kp=0.0, ki=0.0, kd=0.0, mn=MIN_NUM, mx=MAX_NUM):
         #pylint: disable=too-many-arguments
         self.kp = kp
         self.ki = ki
@@ -28,7 +28,7 @@ class PID(object):
 
     def reset(self):
         """
-        STUB
+        Resets Accumulated Error
         """
 
         self.int_val = 0.0
@@ -36,7 +36,15 @@ class PID(object):
 
     def step(self, error, sample_time):
         """
-        STUB
+        Given the CTE (cross track error) and the time elapsed
+        since previous step it return a new value
+
+        Args:
+             error (float) : Cross Track Error
+             sample_time (float): The time since the previous calculation
+
+        Returns: 
+             val (float) : The value that should be applied to the controller
         """
 
         self.last_int_val = self.int_val
