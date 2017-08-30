@@ -36,11 +36,11 @@ class Controller(object):
     def __init__(self, **kwargs):
         mn = kwargs.get('min_acc', 0.0)  # decel_limit
         mx = kwargs.get('max_acc', 0.0)  # accel_limit
-        wb = kwargs.get('wheel_base', 0.0)  # wheel_base
-        sr = kwargs.get('steer_ratio', 0.0)  # steer_ratio
-        ml = kwargs.get('max_lat_acc', 0.0)  # max_lat_accel
+        # wb = kwargs.get('wheel_base', 0.0)  # wheel_base
+        # sr = kwargs.get('steer_ratio', 0.0)  # steer_ratio
+        # ml = kwargs.get('max_lat_acc', 0.0)  # max_lat_accel
         ms = kwargs.get('max_steer_angle', 0.0)  # max_steer_angle
-        min_speed = 0.0
+        # min_speed = 0.0
 
         # create controllers
         self.throttle_pid = pid.PID(kp=1.0, ki=0.02, kd=0.0, mn=mn, mx=mx)
