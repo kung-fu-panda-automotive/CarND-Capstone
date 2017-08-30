@@ -136,7 +136,6 @@ class DBWNode(object):
             current_velocity = self.velocity.linear.x
             # Get predicted throttle, brake, and steering using `twist_controller`
             throttle, brake, steer = self.controller.control(target_velocity,
-                                                             target_angular_velocity,
                                                              current_velocity,
                                                              cte,
                                                              self.dbw_enabled)
