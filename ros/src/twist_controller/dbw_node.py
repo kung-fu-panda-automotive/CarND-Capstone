@@ -64,7 +64,6 @@ class DBWNode(object):
         self.dbw_enabled = True  # dbw_enabled = false => manual driving
         self.waypoints = None
         self.pose = None
-        self.yaw = None
         self.velocity = None
         self.twist = None
 
@@ -121,7 +120,7 @@ class DBWNode(object):
         It reads the required velocities and other flags, creates and publishes
         if required the contoller commands
         """
-        rate = rospy.Rate(50)  # 50Hz
+        rate = rospy.Rate(10)  # 10Hz
         while not rospy.is_shutdown():
             data = [self.velocity, self.waypoints, self.pose]
             all_available = all([x is not None for x in data])
@@ -130,19 +129,13 @@ class DBWNode(object):
                 continue
             # Read target and current velocities
             cte = dbw_helper.cte(self.pose, self.waypoints)
-            print("CTE: ------ ", cte)
             target_velocity = self.waypoints[0].twist.twist.linear.x
-            target_angular_velocity = self.waypoints[0].twist.twist.angular.z
             current_velocity = self.velocity.linear.x
+            vel_error = target_velocity - current_velocity
             # Get predicted throttle, brake, and steering using `twist_controller`
-            throttle, brake, steer = self.controller.control(target_velocity,
-                                                             current_velocity,
+            throttle, brake, steer = self.controller.control(vel_error,
                                                              cte,
                                                              self.dbw_enabled)
-
-            print("Throttle: {}".format(throttle))
-            print("Brake: {}".format(brake))
-            print("Steer: {}".format(steer))
 
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer)
