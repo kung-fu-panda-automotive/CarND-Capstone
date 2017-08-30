@@ -7,6 +7,8 @@
 A simple PID controller
 """
 
+# pylint: disable=invalid-name
+# pylint: disable=too-many-instance-attributes
 MIN_NUM = float('-inf')
 MAX_NUM = float('inf')
 
@@ -17,7 +19,7 @@ class PID(object):
     """
 
     def __init__(self, kp=0.0, ki=0.0, kd=0.0, mn=MIN_NUM, mx=MAX_NUM):
-        #pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments
         self.kp = kp
         self.ki = ki
         self.kd = kd
@@ -54,6 +56,8 @@ class PID(object):
 
         y = self.kp * error + self.ki * self.int_val + self.kd * derivative
         val = max(self.min, min(y, self.max))
+        print("PID :  result {}  CTE {} derivative {} integral {} ".format(
+            y, error, derivative, integral))
 
         if val > self.max:
             val = self.max
