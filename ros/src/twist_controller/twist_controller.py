@@ -60,7 +60,6 @@ class Controller(object):
 
         Args:
              vel_error (float) : Velocity Error
-             current_velocity (float) : The current linear velocity in the x axis
              cte (float): Cross Track Error
              dbw_enabled (bool) : If True: auto pilot is on. If False: Manual driving
         """
