@@ -27,14 +27,17 @@ that we have created in the `__init__` function.
 
 """
 
+# pylint: disable=too-many-instance-attributes
 import rospy
+import dbw_helper
 
 from std_msgs.msg import Bool
 from dbw_mkz_msgs.msg import ThrottleCmd
 from dbw_mkz_msgs.msg import SteeringCmd
 from dbw_mkz_msgs.msg import BrakeCmd
-from dbw_mkz_msgs.msg import SteeringReport
-from geometry_msgs.msg import TwistStamped
+# from dbw_mkz_msgs.msg import SteeringReport
+from geometry_msgs.msg import TwistStamped, PoseStamped
+from styx_msgs.msg import Lane
 
 from twist_controller import Controller
 
@@ -43,13 +46,14 @@ class DBWNode(object):
     """
     Drive by Wire Node:
     The goal of this node is to get waypoint information and transform it
-    to controller commands (throttle, brake, steer). 
+    to controller commands (throttle, brake, steer).
     The commands are published to their related channels.
     """
+
     def __init__(self):
         """
-        1. Reads basics parameters. 
-        2. Subscibes to the required channels to get realtime data. 
+        1. Reads basics parameters.
+        2. Subscibes to the required channels to get realtime data.
         3. Creates required channels to publish contoller actions.
         4. Creates the required controllers
         5. Starts the internal infinite loop.
@@ -57,19 +61,20 @@ class DBWNode(object):
         rospy.init_node('dbw_node')
 
         # class variables
-        self.dbw_enabled = False # dbw_enabled = false => manual driving
+        self.dbw_enabled = True  # dbw_enabled = false => manual driving
         self.waypoints = None
         self.pose = None
         self.yaw = None
         self.velocity = None
+        self.twist = None
 
         # read ros parameters
-        vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
-        fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
-        brake_deadband = rospy.get_param('~brake_deadband', .1)
+        # vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
+        # fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
+        # brake_deadband = rospy.get_param('~brake_deadband', .1)
+        # wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
         decel_limit = rospy.get_param('~decel_limit', -5)
         accel_limit = rospy.get_param('~accel_limit', 1.)
-        wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
         wheel_base = rospy.get_param('~wheel_base', 2.8498)
         steer_ratio = rospy.get_param('~steer_ratio', 14.8)
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
@@ -92,35 +97,53 @@ class DBWNode(object):
                            'steer_ratio': steer_ratio,
                            'max_lat_acc': max_lat_accel,
                            'max_steer_angle': max_steer_angle
-                           }
-        self.controller = Controller(controller_args)
+                          }
+        self.controller = Controller(**controller_args)
 
         # Subscribe to all the topics you need to
-        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb) 
-        rospy.Subscriber('/final_waypoints', Lane, self.waypoints_cb)
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool,
+                         self.dbw_cb, queue_size=1)
+        rospy.Subscriber('/final_waypoints', Lane,
+                         self.waypoints_cb, queue_size=1)
+        rospy.Subscriber('/current_pose', PoseStamped,
+                         self.pose_cb, queue_size=1)
+        rospy.Subscriber('/current_velocity', TwistStamped,
+                         self.velocity_cb, queue_size=1)
+        rospy.Subscriber('/twist_cmd', TwistStamped,
+                         self.twist_cb, queue_size=1)
 
         self.loop()
 
     def loop(self):
         """
         The main functionallity of the DBW Node. 
-        It runs at 50Hz = 50 cycles per second, until ROS shuts down. 
+        It runs at 50Hz = 50 cycles per second, until ROS shuts down.
         It reads the required velocities and other flags, creates and publishes
         if required the contoller commands
         """
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(50)  # 50Hz
         while not rospy.is_shutdown():
+            data = [self.velocity, self.waypoints, self.pose]
+            all_available = all([x is not None for x in data])
+
+            if not all_available:
+                continue
             # Read target and current velocities
-            target_velocity = self.final_waypoints[0].twist.twist.linear.x
-            target_angular_velocity = self.final_waypoints[0].twist.twist.angular.z
+            cte = dbw_helper.cte(self.pose, self.waypoints)
+            print("CTE: ------ ", cte)
+            target_velocity = self.waypoints[0].twist.twist.linear.x
+            target_angular_velocity = self.waypoints[0].twist.twist.angular.z
             current_velocity = self.velocity.linear.x
             # Get predicted throttle, brake, and steering using `twist_controller`
             throttle, brake, steer = self.controller.control(target_velocity,
-                                                            target_angular_velocity,
-                                                            current_velocity,
-                                                            self.dbw_enabled)
+                                                             target_angular_velocity,
+                                                             current_velocity,
+                                                             cte,
+                                                             self.dbw_enabled)
+
+            print("Throttle: {}".format(throttle))
+            print("Brake: {}".format(brake))
+            print("Steer: {}".format(steer))
 
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer)
@@ -131,9 +154,9 @@ class DBWNode(object):
         """
         Publishes the contoller commands to the corresponding topic channels
 
-        Args: 
+        Args:
              throttle (float): Throttle to apply
-             brake (float): Brake to apply 
+             brake (float): Brake to apply
              steer (float): Steering angle in radians
         """
         tcmd = ThrottleCmd()
@@ -164,6 +187,16 @@ class DBWNode(object):
     def pose_cb(self, message):
         """From the incoming message extract the pose message """
         self.pose = message.pose
+
+    def twist_cb(self, message):
+        """From the incoming message extract the pose message """
+        self.twist = message.twist
+
+    def waypoints_cb(self, message):
+        """Update final waypoints array when a new message arrives
+        on the corresponding channel
+        """
+        self.waypoints = message.waypoints
 
 
 if __name__ == '__main__':
