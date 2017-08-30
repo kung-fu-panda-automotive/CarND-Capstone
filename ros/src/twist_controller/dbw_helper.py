@@ -6,6 +6,7 @@
 """
 A collection of helper functions for dbw node
 """
+# pylint: disable=import-error
 from math import sqrt, cos, sin
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +14,6 @@ import tf
 
 # pylint: disable=invalid-name
 # pylint: disable=too-many-instance-attributes
-# pylint: disable=import-error
 
 POINTS_TO_FIT = 10
 
