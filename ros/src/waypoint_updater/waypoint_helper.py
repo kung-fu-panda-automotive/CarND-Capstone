@@ -99,7 +99,7 @@ def get_closest_waypoint_index(pose, waypoints):
 
         other_position = waypoint.pose.pose.position
         gap = get_square_gap(my_position, other_position)
-        
+
         if gap < best_gap:
             best_index, best_gap = i, gap
 
