@@ -13,6 +13,7 @@ import tf
 
 # pylint: disable=invalid-name
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=import-error
 
 POINTS_TO_FIT = 10
 
