@@ -127,15 +127,21 @@ class DBWNode(object):
 
             if not all_available:
                 continue
-            # Read target and current velocities
-            cte = dbw_helper.cte(self.pose, self.waypoints)
-            target_velocity = self.waypoints[0].twist.twist.linear.x
-            current_velocity = self.velocity.linear.x
-            vel_error = target_velocity - current_velocity
-            # Get predicted throttle, brake, and steering using `twist_controller`
-            throttle, brake, steer = self.controller.control(vel_error,
-                                                             cte,
-                                                             self.dbw_enabled)
+            # check if too few waypoints and publish a hard break
+            if len(self.waypoints) < dbw_helper.POINTS_TO_FIT:
+                rospy.logwarn("Number of waypoint received: %s",
+                              len(self.waypoints))
+                throttle, brake, steer = 0, -5, 0
+            else:
+                # Read target and current velocities
+                cte = dbw_helper.cte(self.pose, self.waypoints)
+                target_velocity = self.waypoints[0].twist.twist.linear.x
+                current_velocity = self.velocity.linear.x
+                vel_error = target_velocity - current_velocity
+                # Get predicted throttle, brake, and steering using `twist_controller`
+                throttle, brake, steer = self.controller.control(vel_error,
+                                                                 cte,
+                                                                 self.dbw_enabled)
 
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer)
