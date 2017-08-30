@@ -201,5 +201,5 @@ def cte(pose, waypoints):
 
 if __name__ == '__main__':
 
-    cf = [-8.34706486e-04, -5.37658333e-01, -4.88838535e+00]
-    print(distance2parabola(cf, 0, 0, plot=True))
+    # cf = [-8.34706486e-04, -5.37658333e-01, -4.88838535e+00]
+    # print(distance2parabola(cf, 0, 0, plot=True))

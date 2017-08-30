@@ -45,7 +45,7 @@ class PID(object):
              error (float) : Cross Track Error
              sample_time (float): The time since the previous calculation
 
-        Returns: 
+        Returns:
              val (float) : The value that should be applied to the controller
         """
 
