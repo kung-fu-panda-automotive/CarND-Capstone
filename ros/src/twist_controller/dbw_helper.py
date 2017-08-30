@@ -6,15 +6,15 @@
 """
 A collection of helper functions for dbw node
 """
-from math import sqrt, cos, sinimport numpy as np
+from math import sqrt, cos, sin
+import numpy as np
 import matplotlib.pyplot as plt
 import tf
 
-# from geometry_msgs.msg import TwistStamped, PoseStamped
-# from styx_msgs.msg import Lane
-
 # pylint: disable=invalid-name
 # pylint: disable=too-many-instance-attributes
+
+POINTS_TO_FIT = 10
 
 
 def fit_polynomial(waypoints, degree):
@@ -111,7 +111,7 @@ def plot_distance(coefficients, x_0, y_0, x_, y_):
     plt.show()
 
 
-def shift_and_rotate_waypoints(pose, waypoints):
+def shift_and_rotate_waypoints(pose, waypoints, points_to_use=None):
     """
     From a pose object transfrom a series of waypoints so that
     the origin is at the pose position and the orientation matches
@@ -120,6 +120,7 @@ def shift_and_rotate_waypoints(pose, waypoints):
     Args:
         pose (object) : A pose object
         waypoints (list) : A list of waypoint objects
+        points_to_use (int) : How many points to use (None => all)
 
     Returns:
         x_coords (list): The transformed x-coordinates of waypoints
@@ -132,17 +133,14 @@ def shift_and_rotate_waypoints(pose, waypoints):
     originX = pose.position.x
     originY = pose.position.y
 
-    # yaw = -yaw # temp
-    # delta_Y = waypoints[1].pose.pose.position.y - \
-    #     waypoints[0].pose.pose.position.y
-    # delta_X = waypoints[1].pose.pose.position.x - \
-    #     waypoints[0].pose.pose.position.x
-    # yaw = atan2(delta_Y, delta_X)
+    if points_to_use is None:
+        points_to_use = len(waypoints)
 
-    for waypoint in waypoints:
 
-        shift_x = waypoint.pose.pose.position.x - originX
-        shift_y = waypoint.pose.pose.position.y - originY
+    for i in range(points_to_use):
+
+        shift_x = waypoints[i].pose.pose.position.x - originX
+        shift_y = waypoints[i].pose.pose.position.y - originY
 
         x = shift_x * cos(0 - yaw) - shift_y * sin(0 - yaw)
         y = shift_x * sin(0 - yaw) + shift_y * cos(0 - yaw)
@@ -193,22 +191,10 @@ def cte(pose, waypoints):
     Returns:
         cte (float) : the cross track error (signed)
     """
-    x_coords, y_coords = shift_and_rotate_waypoints(pose, waypoints)
-    coefficients = np.polyfit(x_coords, y_coords, 2)
-    print("Coefficients: ", coefficients)
-    # originX = 0.0
-    # originY = 0.0
+    x_coords, y_coords = shift_and_rotate_waypoints(pose, waypoints, POINTS_TO_FIT)
+    coefficients = np.polyfit(x_coords, y_coords, 3)
+    distance = np.polyval(coefficients, 2.0)
 
-    
-
-    # distance, side, x_, y_ = distance2parabola(
-    #     coefficients, originX, originY, plot=False)
-
-    # print("X_: {} Y: {}".format(x_, y_))
-
-    #return distance * side
-    distance = - np.polyval(coefficients, 0.0)
-    print("DISTANCE CTE: ----- ", distance)
     return distance
 
 
