@@ -35,7 +35,7 @@ class YawController(object):
         """
         Given the radius of the curve , return the steering angle
         Args:
-            radius (float) : The radius of the curve the car is driving 
+            radius (float) : The radius of the curve the car is driving
         Returns:
             angle (float) : The steering angle
         """
@@ -48,7 +48,7 @@ class YawController(object):
         calculate the correct steering angle to achieve the correct angular velocity
         based on the radius of the road
 
-        Args: 
+        Args:
             linear_velocity (float) : the target linear velocity (x-axis)
             angular_velocity (float) : the target angular velocity (z-axis)
             current-velocity (float) : the current linear velocity (x-axis)

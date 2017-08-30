@@ -115,7 +115,7 @@ class DBWNode(object):
 
     def loop(self):
         """
-        The main functionallity of the DBW Node. 
+        The main functionallity of the DBW Node.
         It runs at 50Hz = 50 cycles per second, until ROS shuts down.
         It reads the required velocities and other flags, creates and publishes
         if required the contoller commands
