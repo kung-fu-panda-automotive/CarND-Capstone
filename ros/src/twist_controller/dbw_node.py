@@ -96,7 +96,7 @@ class DBWNode(object):
                            'steer_ratio': steer_ratio,
                            'max_lat_acc': max_lat_accel,
                            'max_steer_angle': max_steer_angle
-                           }
+                          }
         self.controller = Controller(**controller_args)
 
         # Subscribe to all the topics you need to
@@ -129,9 +129,9 @@ class DBWNode(object):
                 continue
             # check if too few waypoints and publish a hard break
             if len(self.waypoints) < dbw_helper.POINTS_TO_FIT:
-                rospy.logwarn("Number of waypoint received: %2",
+                rospy.logwarn("Number of waypoint received: %s",
                               len(self.waypoints))
-                throttle, brake, steer = 0, decel_limit, 0
+                throttle, brake, steer = 0, -5, 0
             else:
                 # Read target and current velocities
                 cte = dbw_helper.cte(self.pose, self.waypoints)
@@ -140,8 +140,8 @@ class DBWNode(object):
                 vel_error = target_velocity - current_velocity
                 # Get predicted throttle, brake, and steering using `twist_controller`
                 throttle, brake, steer = self.controller.control(vel_error,
-                                                                cte,
-                                                                self.dbw_enabled)
+                                                                 cte,
+                                                                 self.dbw_enabled)
 
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer)
