@@ -24,7 +24,6 @@ class WaypointLoader(object):
 
         self.velocity = rospy.get_param('~velocity')
         self.new_waypoint_loader(rospy.get_param('~path'))
-        rospy.spin()
 
     def new_waypoint_loader(self, path):
         if os.path.isfile(path):
@@ -72,7 +71,7 @@ class WaypointLoader(object):
         return waypoints
 
     def publish(self, waypoints):
-        rate = rospy.Rate(40)
+        rate = rospy.Rate(0.1)
         while not rospy.is_shutdown():
             lane = Lane()
             lane.header.frame_id = '/world'
