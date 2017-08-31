@@ -155,6 +155,6 @@ def cte(pose, waypoints):
     x_coords, y_coords = shift_and_rotate_waypoints(
         pose, waypoints, POINTS_TO_FIT)
     coefficients = np.polyfit(x_coords, y_coords, 3)
-    distance = np.polyval(coefficients, 2.0)
+    distance = np.polyval(coefficients, 0.0)
 
     return distance
