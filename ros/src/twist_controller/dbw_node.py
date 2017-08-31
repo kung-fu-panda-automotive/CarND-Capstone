@@ -27,7 +27,6 @@ that we have created in the `__init__` function.
 
 """
 
-# pylint: disable=too-many-instance-attributes
 import rospy
 import dbw_helper
 
