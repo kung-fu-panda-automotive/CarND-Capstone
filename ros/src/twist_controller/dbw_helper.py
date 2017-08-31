@@ -11,9 +11,6 @@ from math import sqrt, cos, sin
 import numpy as np
 import tf
 
-# pylint: disable=invalid-name
-# pylint: disable=too-many-instance-attributes
-
 POINTS_TO_FIT = 10
 
 
@@ -53,7 +50,6 @@ def distance2parabola(coefficients, x, y):
         left (int) : 1 if the point is on the left of the curve as we "walk" the curve
                      from negative to positive x's. -1 if on the right
     """
-    # pylint: disable=too-many-locals
     a, b, c = coefficients
     p0 = 2 * a * a
     p1 = 3 * a * b
@@ -155,6 +151,6 @@ def cte(pose, waypoints):
     x_coords, y_coords = shift_and_rotate_waypoints(
         pose, waypoints, POINTS_TO_FIT)
     coefficients = np.polyfit(x_coords, y_coords, 3)
-    distance = np.polyval(coefficients, 2.0)
+    distance = np.polyval(coefficients, 0.0)
 
     return distance

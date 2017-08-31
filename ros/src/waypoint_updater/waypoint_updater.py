@@ -26,7 +26,7 @@ from styx_msgs.msg import Lane
 
 import waypoint_helper
 
-LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 20  # Number of waypoints we will publish. You can change this number
 MPH_TO_MPS = 0.44704
 
 
