@@ -12,7 +12,7 @@ from conf import conf
 sio = socketio.Server()
 app = Flask(__name__)
 bridge = Bridge(conf)
-msgs = []
+msgs = {}
 
 
 @sio.on('connect')
@@ -22,7 +22,7 @@ def connect(sid, environ):
 
 def send(topic, data):
     s = 1
-    msgs.append((topic, data))
+    msgs[topic] = data
     #sio.emit(topic, data=json.dumps(data), skip_sid=True)
 
 bridge.register_server(send)
@@ -31,7 +31,7 @@ bridge.register_server(send)
 def telemetry(sid, data):
     bridge.publish_odometry(data)
     for i in range(len(msgs)):
-        topic, data = msgs.pop(0)
+        topic, data = msgs.popitem()
         sio.emit(topic, data=data, skip_sid=True)
 
 @sio.on('control')
@@ -60,4 +60,5 @@ if __name__ == '__main__':
     app = socketio.Middleware(sio, app)
 
     # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 4567)), app)
+    #eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 4567)), app)
+    eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
