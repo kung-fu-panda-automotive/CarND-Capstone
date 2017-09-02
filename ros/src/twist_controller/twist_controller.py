@@ -70,8 +70,8 @@ class Controller(object):
         self.timestamp = new_timestamp
         if dbw_enabled:
             # initialize values
-            brake = 0
-            throttle = 0
+            brake = 0.
+            throttle = 0.
             # calculate new steering angle
             steering_angle = self.steer_pid.step(cte, sample_time)
             steering_angle = self.steer_filter.filt(steering_angle)
@@ -79,9 +79,9 @@ class Controller(object):
             throttle = self.throttle_pid.step(vel_error, sample_time)
             throttle = self.throttle_filter.filt(throttle)
             # convert to the expected format
-            if throttle < 0:
+            if throttle < 0.:
                 brake = throttle
-                throttle = 0
+                throttle = 0.
             return throttle, brake, steering_angle
         # dbw is not enabled (manual override) so resetting pid's and filters
         self.throttle_pid.reset()
