@@ -44,7 +44,7 @@ class Controller(object):
 
         # create controllers
         self.throttle_pid = pid.PID(kp=1.0, ki=0.02, kd=0.0, mn=mn, mx=mx)
-        self.steer_pid = pid.PID(kp=0.2, ki=0.001, kd=0.5, mn=-ms, mx=ms)
+        self.steer_pid = pid.PID(kp=0.5, ki=0.001, kd=0.5, mn=-ms, mx=ms)
 
         # create lowpass filters
         self.throttle_filter = lowpass.LowPassFilter(tau=0.10, ts=0.90)
