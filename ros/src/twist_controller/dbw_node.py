@@ -41,7 +41,7 @@ from styx_msgs.msg import Lane
 from twist_controller import Controller
 from yaw_controller import YawController
 
-PREDICTIVE_STEERING = 0.0 # from 0.0 to 1.0
+PREDICTIVE_STEERING = 1.0 # from 0.0 to 1.0
 
 
 class DBWNode(object):
