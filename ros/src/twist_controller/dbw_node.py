@@ -39,9 +39,13 @@ from geometry_msgs.msg import TwistStamped, PoseStamped
 from styx_msgs.msg import Lane
 
 from twist_controller import Controller
+from yaw_controller import YawController
+
+PREDICTIVE_STEERING = 1.0 # from 0.0 to 1.0
 
 
 class DBWNode(object):
+    #pylint: disable=too-many-instance-attributes
     """
     Drive by Wire Node:
     The goal of this node is to get waypoint information and transform it
@@ -77,6 +81,7 @@ class DBWNode(object):
         steer_ratio = rospy.get_param('~steer_ratio', 14.8)
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
+        min_speed = 0.0
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd,
@@ -97,6 +102,8 @@ class DBWNode(object):
                            'max_steer_angle': max_steer_angle
                           }
         self.controller = Controller(**controller_args)
+        self.yaw_controller = YawController(
+            wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
 
         # Subscribe to all the topics you need to
         rospy.Subscriber('/vehicle/dbw_enabled', Bool,
@@ -141,9 +148,12 @@ class DBWNode(object):
                 throttle, brake, steer = self.controller.control(vel_error,
                                                                  cte,
                                                                  self.dbw_enabled)
-
+                # Get predicted steering angle from road curvature
+                yaw_steer = self.yaw_controller.get_steering(self.twist.linear.x,
+                                                             self.twist.angular.z,
+                                                             current_velocity)
             if self.dbw_enabled:
-                self.publish(throttle, brake, steer)
+                self.publish(throttle, brake, steer + PREDICTIVE_STEERING * yaw_steer)
 
             rate.sleep()
 
