@@ -209,6 +209,7 @@ class TLClassifierCNN(object):
     def _conv2d(self, input_op, input_channels, output_channels, kernel_size, stride_size):
         #pylint: disable=too-many-arguments
         #pylint: disable=no-self-use
+        #pylint: disable=no-member
         """ helper to define convolution+bias ops. plus all summaries"""
         trunc_normal_stddev = 0.05
         bias_init = 0.1
