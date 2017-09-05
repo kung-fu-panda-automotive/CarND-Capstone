@@ -152,6 +152,8 @@ class DBWNode(object):
                 yaw_steer = self.yaw_controller.get_steering(self.twist.linear.x,
                                                              self.twist.angular.z,
                                                              current_velocity)
+                # Apply full deacceleration if target velocity is zero
+                brake = -5 if self.twist.linear.x == 0 else brake
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer + PREDICTIVE_STEERING * yaw_steer)
 
