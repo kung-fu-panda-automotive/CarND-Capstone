@@ -144,6 +144,8 @@ class DBWNode(object):
                 target_velocity = self.waypoints[0].twist.twist.linear.x
                 current_velocity = self.velocity.linear.x
                 vel_error = target_velocity - current_velocity
+                reference_velocity = 15 #mph
+                correction = reference_velocity/(current_velocity+1)
                 # Get predicted throttle, brake, and steering using `twist_controller`
                 throttle, brake, steer = self.controller.control(vel_error,
                                                                  cte,
@@ -155,7 +157,7 @@ class DBWNode(object):
                 # Apply full deacceleration if target velocity is zero
                 brake = -5 if self.twist.linear.x == 0 else brake
             if self.dbw_enabled:
-                self.publish(throttle, brake, steer + PREDICTIVE_STEERING * yaw_steer)
+                self.publish(throttle, brake, steer * correction + PREDICTIVE_STEERING * yaw_steer)
 
             rate.sleep()
 
