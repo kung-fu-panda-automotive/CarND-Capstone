@@ -270,6 +270,7 @@ class TLClassifierCNN(object):
 
     def _create_layer_3(self):
         #pylint: disable=not-context-manager
+        #pylint: disable=no-member
         """ define final fully connected layer """
         with tf.name_scope("fc"):
             # reshape
