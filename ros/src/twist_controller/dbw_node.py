@@ -137,14 +137,14 @@ class DBWNode(object):
             if len(self.waypoints) < dbw_helper.POINTS_TO_FIT:
                 rospy.logwarn("Number of waypoint received: %s",
                               len(self.waypoints))
-                throttle, brake, steer = 0, -5, 0
+                throttle, brake, steer = 0, -50, 0
             else:
                 # Read target and current velocities
                 cte = dbw_helper.cte(self.pose, self.waypoints)
                 target_velocity = self.waypoints[0].twist.twist.linear.x
                 current_velocity = self.velocity.linear.x
                 vel_error = target_velocity - current_velocity
-                reference_velocity = 15 #mph
+                reference_velocity = 10 #mph
                 correction = reference_velocity/(current_velocity+1)
                 # Get predicted throttle, brake, and steering using `twist_controller`
                 throttle, brake, steer = self.controller.control(vel_error,
@@ -154,8 +154,10 @@ class DBWNode(object):
                 yaw_steer = self.yaw_controller.get_steering(self.twist.linear.x,
                                                              self.twist.angular.z,
                                                              current_velocity)
+
                 # Apply full deacceleration if target velocity is zero
-                brake = -5 if self.twist.linear.x == 0 else brake
+                brake = -50 if self.twist.linear.x == 0 else brake
+
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer * correction + PREDICTIVE_STEERING * yaw_steer)
 
