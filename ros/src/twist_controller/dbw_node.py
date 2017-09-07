@@ -139,7 +139,7 @@ class DBWNode(object):
                                                                 0.5)
 
                 # Apply full deacceleration if target velocity is zero
-                brake = 20000 if self.twist.linear.x == 0 else brake
+                # brake = 20000 if self.twist.linear.x == 0 else brake
 
             else:
                 # if too few waypoints and publish a hard break
