@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" DUMMY FOR TESTS Traffic Lights Detector """
+""" Fake Traffic Lights Detector to be used for testing"""
 #pylint: disable=fixme
 
 import rospy

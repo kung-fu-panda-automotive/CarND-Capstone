@@ -8,6 +8,7 @@
 Traffic Lights Detector
 """
 
+import yaml
 import rospy
 from std_msgs.msg import Int32
 #from geometry_msgs.msg import PoseStamped
@@ -18,7 +19,6 @@ from styx_msgs.msg import TrafficLight
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
 import tf
-import yaml
 
 STATE_COUNT_THRESHOLD = 3
 
