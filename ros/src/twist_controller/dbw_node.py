@@ -42,7 +42,7 @@ from twist_controller import Controller
 from yaw_controller import YawController
 
 PREDICTIVE_STEERING = 1.0 # from 0.0 to 1.0
-
+REFERENCE_VELOCITY = 10 #mph
 
 class DBWNode(object):
     #pylint: disable=too-many-instance-attributes
@@ -128,8 +128,7 @@ class DBWNode(object):
                 target_velocity = self.waypoints[0].twist.twist.linear.x
                 current_velocity = self.velocity.linear.x
                 vel_error = target_velocity - current_velocity
-                reference_velocity = 10 #mph
-                correction = reference_velocity/(current_velocity+1)
+                correction = REFERENCE_VELOCITY/(current_velocity+1)
 
                 # Get predicted throttle, brake, and steering using `twist_controller`
                 throttle, brake, steer = self.controller.control(vel_error,
