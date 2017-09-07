@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 
-""" Traffic Lights Detector """
+""" DUMMY FOR TESTS Traffic Lights Detector """
 #pylint: disable=fixme
 
 import rospy
 from std_msgs.msg import Int32
-from styx_msgs.msg import Lane
-from geometry_msgs.msg import TwistStamped, Pose
-
 
 NUMBER_OF_TRAFFIC_LIGHTS = 8
-COUNTER_THRESH = 400
+COUNTER_THRESH = 200
 
 class TLDetector(object):
-    """ Traffic Lights Detector """
+    """ FAKE Traffic Lights Detector """
 
 
     def __init__(self):
@@ -45,14 +42,14 @@ class TLDetector(object):
         """Car index callback"""
 
         car_index = msg.data
-        
+
         if car_index != self.car_index:
             self.counter = 0
             self.car_index = car_index
         else:
-            self.counter+=1
+            self.counter += 1
             if self.counter > 90:
-                rospy.logwarn("TLDETECTOR: COUNT: %s", self.counter) 
+                rospy.logwarn("TLDETECTOR: COUNT: %s", self.counter)
 
 
         if self.counter >= COUNTER_THRESH or car_index > self.waypoint_index:
@@ -61,14 +58,14 @@ class TLDetector(object):
             self.traffic_id = (self.traffic_id + 1) % NUMBER_OF_TRAFFIC_LIGHTS
 
             while car_index > self.traffic_lights[self.traffic_id]:
-                self.traffic_id+=1
+                self.traffic_id += 1
                 if car_index > 9733:
                     self.traffic_id = 7
                     break
 
             self.waypoint_index = self.traffic_lights[self.traffic_id]
-            rospy.logwarn("TLDETECTOR: CAR WILL MOVE AGAIN: car_index: %s, new traffic light: %s", 
-                           car_index, self.waypoint_index)
+            rospy.logwarn("TLDETECTOR: CAR WILL MOVE AGAIN: car_index: %s, new traffic light: %s",
+                          car_index, self.waypoint_index)
 
 
 
