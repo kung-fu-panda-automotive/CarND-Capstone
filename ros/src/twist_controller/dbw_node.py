@@ -42,7 +42,7 @@ from twist_controller import Controller
 from yaw_controller import YawController
 
 PREDICTIVE_STEERING = 1.0 # from 0.0 to 1.0
-
+REFERENCE_VELOCITY = 10 #mph
 
 class DBWNode(object):
     #pylint: disable=too-many-instance-attributes
@@ -83,15 +83,9 @@ class DBWNode(object):
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
         min_speed = 0.0
 
-        self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
-                                         SteeringCmd,
-                                         queue_size=1)
-        self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd',
-                                            ThrottleCmd,
-                                            queue_size=1)
-        self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
-                                         BrakeCmd,
-                                         queue_size=1)
+        self.steer_pub = rospy.Publisher('/vehicle/steering_cmd', SteeringCmd, queue_size=1)
+        self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd', ThrottleCmd, queue_size=1)
+        self.brake_pub = rospy.Publisher('/vehicle/brake_cmd', BrakeCmd, queue_size=1)
 
         # Create `TwistController` object
         controller_args = {'min_acc': decel_limit,
@@ -101,61 +95,59 @@ class DBWNode(object):
                            'max_lat_acc': max_lat_accel,
                            'max_steer_angle': max_steer_angle
                           }
+
         self.controller = Controller(**controller_args)
         self.yaw_controller = YawController(
             wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
 
         # Subscribe to all the topics you need to
-        rospy.Subscriber('/vehicle/dbw_enabled', Bool,
-                         self.dbw_cb, queue_size=1)
-        rospy.Subscriber('/final_waypoints', Lane,
-                         self.waypoints_cb, queue_size=1)
-        rospy.Subscriber('/current_pose', PoseStamped,
-                         self.pose_cb, queue_size=1)
-        rospy.Subscriber('/current_velocity', TwistStamped,
-                         self.velocity_cb, queue_size=1)
-        rospy.Subscriber('/twist_cmd', TwistStamped,
-                         self.twist_cb, queue_size=1)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb, queue_size=1)
+        rospy.Subscriber('/final_waypoints', Lane, self.waypoints_cb, queue_size=1)
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb, queue_size=1)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb, queue_size=1)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb, queue_size=1)
 
         self.loop()
 
     def loop(self):
-        """
-        The main functionallity of the DBW Node.
-        It runs at 50Hz = 50 cycles per second, until ROS shuts down.
-        It reads the required velocities and other flags, creates and publishes
-        if required the contoller commands
-        """
+        """The main functionallity of the DBW Node."""
         rate = rospy.Rate(10)  # 10Hz
+
         while not rospy.is_shutdown():
+
             data = [self.velocity, self.waypoints, self.pose]
             all_available = all([x is not None for x in data])
 
             if not all_available:
                 continue
-            # check if too few waypoints and publish a hard break
-            if len(self.waypoints) < dbw_helper.POINTS_TO_FIT:
-                rospy.logwarn("Number of waypoint received: %s",
-                              len(self.waypoints))
-                throttle, brake, steer = 0, -5, 0
-            else:
+
+            if len(self.waypoints) >= dbw_helper.POINTS_TO_FIT:
+
                 # Read target and current velocities
                 cte = dbw_helper.cte(self.pose, self.waypoints)
                 target_velocity = self.waypoints[0].twist.twist.linear.x
                 current_velocity = self.velocity.linear.x
                 vel_error = target_velocity - current_velocity
-                reference_velocity = 15 #mph
-                correction = reference_velocity/(current_velocity+1)
+                correction = REFERENCE_VELOCITY/(current_velocity+1)
+
                 # Get predicted throttle, brake, and steering using `twist_controller`
                 throttle, brake, steer = self.controller.control(vel_error,
                                                                  cte,
                                                                  self.dbw_enabled)
+
                 # Get predicted steering angle from road curvature
                 yaw_steer = self.yaw_controller.get_steering(self.twist.linear.x,
                                                              self.twist.angular.z,
                                                              current_velocity)
+
                 # Apply full deacceleration if target velocity is zero
-                brake = -5 if self.twist.linear.x == 0 else brake
+                brake = 10000 if self.twist.linear.x == 0 else brake
+
+            else:
+                # if too few waypoints and publish a hard break
+                rospy.logwarn("Number of waypoint received: %s", len(self.waypoints))
+                throttle, brake, steer = 0, 10000, 0
+
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer * correction + PREDICTIVE_STEERING * yaw_steer)
 
