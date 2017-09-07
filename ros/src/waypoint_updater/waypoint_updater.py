@@ -13,10 +13,10 @@ from styx_msgs.msg import Lane
 import waypoint_helper
 
 MPH_TO_MPS = 0.44704
-MAX_SPEED = 10.0 * MPH_TO_MPS
-LOOKAHEAD_WPS = 20  # Number of waypoints we will publish. You can change this number
-WAYPOINTS_AHEAD = 20 # Number of waypoint traffic light is ahead of car to stop
-STALE_TIME = 2.0 # time since that indicates it is relatively new data
+MAX_SPEED = 10.0 * MPH_TO_MPS #: Vehicle speed limit
+LOOKAHEAD_WPS = 20  #: Number of waypoints we will publish
+WAYPOINTS_AHEAD = 20 #: Number of waypoint traffic light is ahead of car to stop
+STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
 
 class WaypointUpdater(object):
     """Given the position and map this object publishes
@@ -35,10 +35,10 @@ class WaypointUpdater(object):
         self.car_index_pub = rospy.Publisher('car_index', Int32, queue_size=1)
 
         self.base_waypoints = None
-        self.pose = None # Current vehicle location + orientation
-        self.previous_car_index = 0 # Where in base waypoints list the car is
-        self.traffic_index = -1 # Where in base waypoints list the traffic light is
-        self.traffic_time_received = rospy.get_time()
+        self.pose = None #: Current vehicle location + orientation
+        self.previous_car_index = 0 #: Where in base waypoints list the car is
+        self.traffic_index = -1 #: Where in base waypoints list the traffic light is
+        self.traffic_time_received = rospy.get_time() #: When traffic light info was received
 
         rospy.spin()
 
@@ -65,7 +65,6 @@ class WaypointUpdater(object):
             # Get subset waypoints ahead of vehicle and set target speeds
             lookahead_waypoints = waypoint_helper.get_next_waypoints(self.base_waypoints,
                                                                      car_index, LOOKAHEAD_WPS)
-
             for waypoint in lookahead_waypoints:
                 waypoint.twist.twist.linear.x = target_speed
 
@@ -78,10 +77,9 @@ class WaypointUpdater(object):
             if car_index != self.previous_car_index:
                 self.previous_car_index = car_index
                 if cond1 and cond2:
-                    rospy.logwarn("WaypointUpdater:BRAKE!%s:%s", car_index, self.traffic_index)
+                    rospy.logwarn("WPUpdater:BRAKE!car-%s:light-%s", car_index, self.traffic_index)
                 else:
-                    rospy.logwarn("Waypoint Updater:CRUISE!%s:%s", car_index, self.traffic_index)
-
+                    rospy.logwarn("WPUpdater:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
 
     def base_waypoints_cb(self, msg):
         """ We store the given map """
@@ -103,9 +101,9 @@ class WaypointUpdater(object):
         """ Get velocity of a given waypoints """
         return waypoint.twist.twist.linear.x
 
-    def setwaypoint_velocity(self, waypoints, waypoint, velocity):
+    def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         # pylint: disable=no-self-use
-        """  Set the velocity of a given waypoint """
+        """ Set the velocity of a given waypoint """
         waypoints[waypoint].twist.twist.linear.x = velocity
 
 
