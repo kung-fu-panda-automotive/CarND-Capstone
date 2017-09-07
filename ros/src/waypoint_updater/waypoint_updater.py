@@ -48,7 +48,7 @@ class WaypointUpdater(object):
         self.pose = msg.pose # store location (x, y)
         frame_id = msg.header.frame_id
 
-        if self.base_waypoints:
+        if self.base_waypoints is not None:
 
             # Where in base waypoints list the car is
             car_index = waypoint_helper.get_closest_waypoint_index(self.pose, self.base_waypoints)
