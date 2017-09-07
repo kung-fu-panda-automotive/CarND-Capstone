@@ -81,7 +81,6 @@ class WaypointUpdater(object):
                 else:
                     rospy.logwarn("WPUpdater:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
 
-
     def base_waypoints_cb(self, msg):
         """ We store the given map """
         # msg: styx_msgs.msg.lane
