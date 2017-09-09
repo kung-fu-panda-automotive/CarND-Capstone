@@ -64,9 +64,10 @@ class TLDetector(object):
         rate = rospy.Rate(5)
 
         while not rospy.is_shutdown():
+
             rate.sleep()
 
-            if (rospy.get_time() - self.time_received) < STALE_TIME:
+            if (rospy.get_time() - self.time_received) > STALE_TIME:
                 continue
 
             if self.best_traffic_index is not None:
@@ -79,7 +80,8 @@ class TLDetector(object):
 
     def base_waypoints_cb(self, msg):
         """ Base waypoints callback """
-        self.base_waypoints = msg.waypoints
+        if self.base_waypoints is None:
+            self.base_waypoints = msg.waypoints
 
     def traffic_cb(self, msg):
         """ Determines nearest red traffic light ahead of vehicle """
