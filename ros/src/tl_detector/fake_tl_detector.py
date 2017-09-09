@@ -71,7 +71,7 @@ class TLDetector(object):
                 continue
 
             if self.best_traffic_index is not None:
-                rospy.logwarn("TLDetector:%s", self.best_traffic_index)
+                #rospy.logwarn("TLDetector:%s", self.best_traffic_index)
                 self.publisher.publish(self.best_traffic_index)
 
     def car_index_cb(self, msg):
