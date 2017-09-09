@@ -60,17 +60,18 @@ class TLDetector(object):
 
     def loop(self):
         """ Publish traffic light index """
-        rate = rospy.Rate(1)
+
+        rate = rospy.Rate(5)
 
         while not rospy.is_shutdown():
-
-            not_stale = rospy.get_time() - self.time_received < STALE_TIME
-
-            if self.best_traffic_index is not None and not_stale:
-                rospy.logwarn("TLDetector:%s", self.best_traffic_index)
-                self.publisher.publish(self.best_traffic_index)
             rate.sleep()
 
+            if (rospy.get_time() - self.time_received) < STALE_TIME:
+                continue
+
+            if self.best_traffic_index is not None:
+                rospy.logwarn("TLDetector:%s", self.best_traffic_index)
+                self.publisher.publish(self.best_traffic_index)
 
     def car_index_cb(self, msg):
         """ Car index callback """
@@ -83,20 +84,19 @@ class TLDetector(object):
     def traffic_cb(self, msg):
         """ Determines nearest red traffic light ahead of vehicle """
 
-        all_available = self.base_waypoints is not None and self.car_index is not None
-
-        if not all_available:
+        if self.base_waypoints is None or self.car_index is None:
             return
 
         best_traffic_index = FAR_AWAY # large number
 
         for light in msg.lights:
+      
+            if light.state != TrafficLight.RED:
+                continue
 
             traffic_index = get_closest_waypoint_index(light.pose.pose, self.base_waypoints)
-            has_stop_signal = (light.state == TrafficLight.RED)
-            is_closest_ahead = traffic_index > self.car_index and traffic_index < best_traffic_index
-
-            if has_stop_signal and is_closest_ahead:
+            
+            if traffic_index > self.car_index and traffic_index < best_traffic_index:
                 best_traffic_index = traffic_index
 
         if best_traffic_index == FAR_AWAY:
