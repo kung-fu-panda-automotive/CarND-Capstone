@@ -92,12 +92,12 @@ class TLDetector(object):
         best_traffic_index = FAR_AWAY # large number
 
         for light in msg.lights:
-      
+
             if light.state != TrafficLight.RED:
                 continue
 
             traffic_index = get_closest_waypoint_index(light.pose.pose, self.base_waypoints)
-            
+
             if traffic_index > self.car_index and traffic_index < best_traffic_index:
                 best_traffic_index = traffic_index
 

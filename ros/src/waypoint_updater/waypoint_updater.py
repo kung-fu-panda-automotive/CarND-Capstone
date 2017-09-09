@@ -44,7 +44,7 @@ class WaypointUpdater(object):
         self.loop()
 
     def loop(self):
-
+        """ Publishes car index and subset of waypoints with target velocities """
         rate = rospy.Rate(20)
 
         while not rospy.is_shutdown():
@@ -85,7 +85,7 @@ class WaypointUpdater(object):
                     rospy.logwarn("WPUpdater:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
 
     def pose_cb(self, msg):
-        """ Publishes waypoints with target velocities whenever the vehicle location is received"""
+        """  Update vehicle location """
         self.pose = msg.pose # store location (x, y)
         self.frame_id = msg.header.frame_id
 
