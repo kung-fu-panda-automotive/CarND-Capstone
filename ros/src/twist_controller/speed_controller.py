@@ -6,7 +6,7 @@
 A speed pid controller based on torque for dbw node
 """
 
-MAX_THROTTLE_TORQUE = 2000.0
+MAX_THROTTLE_TORQUE = 200.0
 MAX_BREAK_TORQUE = 20000.0
 
 
