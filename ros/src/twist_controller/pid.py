@@ -18,7 +18,7 @@ class PID(object):
     A simple PID controller object
     """
 
-    def __init__(self, kp=0.0, ki=0.0, kd=0.0, mn=MIN_NUM, mx=MAX_NUM):
+    def __init__(self, kp=0.0, ki=0.0, kd=0.0, mn=MIN_NUM, mx=MAX_NUM, lowpass_filter=None):
         # pylint: disable=too-many-arguments
         self.kp = kp
         self.ki = ki
@@ -27,6 +27,7 @@ class PID(object):
         self.max = mx
 
         self.int_val = self.last_int_val = self.last_error = 0.
+        self.filter = lowpass_filter
 
     def reset(self):
         """
@@ -54,10 +55,11 @@ class PID(object):
         integral = self.int_val + error * sample_time
         derivative = (error - self.last_error) / sample_time
 
+        if self.filter is not None:
+            derivative = self.filter.filt(derivative)
+
         y = self.kp * error + self.ki * self.int_val + self.kd * derivative
         val = max(self.min, min(y, self.max))
-        print("PID :  result {}  CTE {} derivative {} integral {} ".format(
-            y, error, derivative, integral))
 
         if val > self.max:
             val = self.max

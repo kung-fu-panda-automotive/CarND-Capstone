@@ -36,10 +36,13 @@ class Controller(object):
     def __init__(self, max_steer_angle):
         ms = max_steer_angle  # max_steer_angle
 
-        # create controllers
-        self.steer_pid = pid.PID(kp=0.5, ki=0.003, kd=0.25, mn=-ms, mx=ms)
         # create lowpass filters
-        self.steer_filter = lowpass.LowPassFilter(tau=0., ts=1.)
+        self.steer_filter = lowpass.LowPassFilter(tau=0.0, ts=1.0)
+        # override filter. It induces lag. Here for reference on how to use
+        self.steer_filter = None
+        # create controllers
+        self.steer_pid = pid.PID(kp=0.5, ki=0.003, kd=0.25,
+                                 mn=-ms, mx=ms, lowpass_filter=self.steer_filter)
         # init timestamp
         self.timestamp = rospy.get_time()
 
@@ -58,8 +61,6 @@ class Controller(object):
 
         self.timestamp = new_timestamp
         if dbw_enabled:
-            # filter (smooth) errors
-            cte = self.steer_filter.filt(cte)
             # calculate new steering angle
             steering_angle = self.steer_pid.step(cte, sample_time)
             return steering_angle
