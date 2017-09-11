@@ -6,6 +6,7 @@
 import rospy
 from std_msgs.msg import Int32
 from styx_msgs.msg import TrafficLightArray, TrafficLight, Lane
+from copy import deepcopy
 
 FAR_AWAY = 1000000000
 STALE_TIME = 2.0
@@ -51,7 +52,8 @@ class TLDetector(object):
                          self.traffic_cb, queue_size=1)
 
         self.publisher = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
-
+        self.traffic_map = {} #: Maps traffic light position to closest base waypoint index
+        self.initialized = False # Marks that self.traffic_map is populated
         self.base_waypoints = None
         self.car_index = None
         self.best_traffic_index = None
@@ -71,7 +73,6 @@ class TLDetector(object):
                 continue
 
             if self.best_traffic_index is not None:
-                rospy.logwarn("TLDetector:%s", self.best_traffic_index)
                 self.publisher.publish(self.best_traffic_index)
 
     def car_index_cb(self, msg):
@@ -83,11 +84,23 @@ class TLDetector(object):
         if self.base_waypoints is None:
             self.base_waypoints = msg.waypoints
 
+    def initialize(self, lights):
+        """ Initialize traffic map dictionary """
+
+        for light in lights:
+            traffic_index = get_closest_waypoint_index(light.pose.pose, self.base_waypoints)
+            p = light.pose.pose.position
+            self.traffic_map[(p.x, p.y)] = traffic_index
+        self.initialized = True
+
     def traffic_cb(self, msg):
         """ Determines nearest red traffic light ahead of vehicle """
 
         if self.base_waypoints is None or self.car_index is None:
             return
+
+        if not self.initialized:
+            self.initialize(msg.lights)
 
         best_traffic_index = FAR_AWAY # large number
 
@@ -95,12 +108,12 @@ class TLDetector(object):
 
             if light.state != TrafficLight.RED:
                 continue
-
-            traffic_index = get_closest_waypoint_index(light.pose.pose, self.base_waypoints)
+            p = light.pose.pose.position
+            traffic_index = self.traffic_map[(p.x, p.y)]
 
             if traffic_index > self.car_index and traffic_index < best_traffic_index:
                 best_traffic_index = traffic_index
-
+        
         if best_traffic_index == FAR_AWAY:
             self.best_traffic_index = None
         else:
