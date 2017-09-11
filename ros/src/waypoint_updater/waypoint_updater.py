@@ -14,8 +14,8 @@ import waypoint_helper
 
 MPH_TO_MPS = 0.44704
 MAX_SPEED = 10.0 * MPH_TO_MPS #: Vehicle speed limit
-LOOKAHEAD_WPS = 20  #: Number of waypoints we will publish
-WAYPOINTS_AHEAD = 20 #: Number of waypoint traffic light is ahead of car to stop
+LOOKAHEAD_WPS = 25  #: Number of waypoints we will publish
+WAYPOINTS_AHEAD = 25 #: Number of waypoint traffic light is ahead of car to stop
 STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
 
 class WaypointUpdater(object):
@@ -45,7 +45,7 @@ class WaypointUpdater(object):
 
     def loop(self):
         """ Publishes car index and subset of waypoints with target velocities """
-        rate = rospy.Rate(20)
+        rate = rospy.Rate(30)
 
         while not rospy.is_shutdown():
             rate.sleep()
@@ -57,7 +57,7 @@ class WaypointUpdater(object):
             car_index = waypoint_helper.get_closest_waypoint_index(self.pose, self.base_waypoints)
 
             # Traffic light must be in front and not too far ahead and relatively new
-            cond1 = 0 <= (self.traffic_index - car_index) < WAYPOINTS_AHEAD
+            cond1 = 2 < (self.traffic_index - car_index) < WAYPOINTS_AHEAD
             cond2 = rospy.get_time() - self.traffic_time_received < STALE_TIME
 
             # Ask to cruise or brake car
@@ -77,12 +77,12 @@ class WaypointUpdater(object):
             self.car_index_pub.publish(car_index)
 
             # Print some stuff for debugging
-            if car_index != self.previous_car_index:
-                self.previous_car_index = car_index
-                if cond1 and cond2:
-                    rospy.logwarn("WPUpdater:BRAKE!car-%s:light-%s", car_index, self.traffic_index)
-                else:
-                    rospy.logwarn("WPUpdater:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
+            #if car_index != self.previous_car_index:
+            #    self.previous_car_index = car_index
+            #    if cond1 and cond2:
+            #        rospy.logwarn("WPU:BRAKE!car-%s:light-%s", car_index, self.traffic_index)
+            #    else:
+            #        rospy.logwarn("WPU:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
 
     def pose_cb(self, msg):
         """  Update vehicle location """
