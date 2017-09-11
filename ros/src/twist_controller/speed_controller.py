@@ -6,7 +6,7 @@
 A speed pid controller based on torque for dbw node
 """
 
-MAX_THROTTLE_TORQUE = 2000.0
+MAX_THROTTLE_TORQUE = 200.0
 MAX_BREAK_TORQUE = 20000.0
 
 
@@ -37,7 +37,7 @@ class SpeedController(object):
         # calculate the acceleration based on the time
         # we need to make the change happen
         acceleration = error / realization_time
-        # apply limits to acceleration
+        # apply limits to acceleration (useless since we use torque limits)
         if acceleration > 0:
             acceleration = min(self.accel_limit, acceleration)
         else:
