@@ -6,7 +6,8 @@ as provided by Udacity for ideas to implement this
 """
 
 import rospy
-from fake_tl_detector import TLDetector # For testing for now
+#from fake_tl_detector import TLDetector # For testing for now
+from other_fake_tl_detector import TLDetector # For testing for now
 
 if __name__ == '__main__':
     try:
