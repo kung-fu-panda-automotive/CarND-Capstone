@@ -6,7 +6,6 @@
 import rospy
 from std_msgs.msg import Int32
 from styx_msgs.msg import TrafficLightArray, TrafficLight, Lane
-from copy import deepcopy
 
 FAR_AWAY = 1000000000
 STALE_TIME = 2.0
@@ -53,7 +52,7 @@ class TLDetector(object):
 
         self.publisher = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
         self.traffic_map = {} #: Maps traffic light position to closest base waypoint index
-        self.initialized = False # Marks that self.traffic_map is populated
+        self.initialized = False #: Marks that self.traffic_map is populated
         self.base_waypoints = None
         self.car_index = None
         self.best_traffic_index = None
@@ -113,7 +112,7 @@ class TLDetector(object):
 
             if traffic_index > self.car_index and traffic_index < best_traffic_index:
                 best_traffic_index = traffic_index
-        
+
         if best_traffic_index == FAR_AWAY:
             self.best_traffic_index = None
         else:
