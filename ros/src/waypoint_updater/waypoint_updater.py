@@ -14,8 +14,8 @@ import waypoint_helper
 
 MPH_TO_MPS = 0.44704
 MAX_SPEED = 10.0 * MPH_TO_MPS #: Vehicle speed limit
-LOOKAHEAD_WPS = 20  #: Number of waypoints we will publish
-WAYPOINTS_AHEAD = 20 #: Number of waypoint traffic light is ahead of car to stop
+LOOKAHEAD_WPS = 25  #: Number of waypoints we will publish
+WAYPOINTS_AHEAD = 25 #: Number of waypoint traffic light is ahead of car to stop
 STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
 
 class WaypointUpdater(object):
@@ -36,25 +36,28 @@ class WaypointUpdater(object):
 
         self.base_waypoints = None
         self.pose = None #: Current vehicle location + orientation
+        self.frame_id = None
         self.previous_car_index = 0 #: Where in base waypoints list the car is
         self.traffic_index = -1 #: Where in base waypoints list the traffic light is
         self.traffic_time_received = rospy.get_time() #: When traffic light info was received
 
-        rospy.spin()
+        self.loop()
 
-    def pose_cb(self, msg):
-        """ Publishes waypoints with target velocities whenever the vehicle location is received"""
+    def loop(self):
+        """ Publishes car index and subset of waypoints with target velocities """
+        rate = rospy.Rate(30)
 
-        self.pose = msg.pose # store location (x, y)
-        frame_id = msg.header.frame_id
+        while not rospy.is_shutdown():
+            rate.sleep()
 
-        if self.base_waypoints is not None:
+            if self.base_waypoints is None or self.pose is None or self.frame_id is None:
+                continue
 
             # Where in base waypoints list the car is
             car_index = waypoint_helper.get_closest_waypoint_index(self.pose, self.base_waypoints)
 
             # Traffic light must be in front and not too far ahead and relatively new
-            cond1 = 0 <= (self.traffic_index - car_index) < WAYPOINTS_AHEAD
+            cond1 = 2 < (self.traffic_index - car_index) < WAYPOINTS_AHEAD
             cond2 = rospy.get_time() - self.traffic_time_received < STALE_TIME
 
             # Ask to cruise or brake car
@@ -69,17 +72,22 @@ class WaypointUpdater(object):
                 waypoint.twist.twist.linear.x = target_speed
 
             # Publish
-            lane = waypoint_helper.make_lane_object(frame_id, lookahead_waypoints)
+            lane = waypoint_helper.make_lane_object(self.frame_id, lookahead_waypoints)
             self.final_waypoints_pub.publish(lane)
             self.car_index_pub.publish(car_index)
 
             # Print some stuff for debugging
-            if car_index != self.previous_car_index:
-                self.previous_car_index = car_index
-                if cond1 and cond2:
-                    rospy.logwarn("WPUpdater:BRAKE!car-%s:light-%s", car_index, self.traffic_index)
-                else:
-                    rospy.logwarn("WPUpdater:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
+            #if car_index != self.previous_car_index:
+            #    self.previous_car_index = car_index
+            #    if cond1 and cond2:
+            #        rospy.logwarn("WPU:BRAKE!car-%s:light-%s", car_index, self.traffic_index)
+            #    else:
+            #        rospy.logwarn("WPU:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
+
+    def pose_cb(self, msg):
+        """  Update vehicle location """
+        self.pose = msg.pose # store location (x, y)
+        self.frame_id = msg.header.frame_id
 
     def base_waypoints_cb(self, msg):
         """ We store the given map """
