@@ -16,9 +16,9 @@ MPH_TO_MPS = 0.44704
 MAX_SPEED = 10.0 * MPH_TO_MPS #: Vehicle speed limit
 LOOKAHEAD_WPS = 50 #: Number of waypoints we will publish
 STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
-MIN_DISTANCE = 22.5 #: Minimum distance from away from traffic light
-MAX_DISTANCE = 45.0 #: Maximum distance from the traffic light to stop
-DELTA_DISTANCE = 7.5 #: Buffer distance which is where the car must be completely stopped
+MIN_DISTANCE = 23.0 #: Minimum distance from away from traffic light
+MAX_DISTANCE = 40.0 #: Maximum distance from the traffic light to stop
+DELTA_DISTANCE = 7.0 #: Buffer distance which is where the car must be completely stopped
 STOPPED_DISTANCE = MIN_DISTANCE + DELTA_DISTANCE #: Meters from light where the car is stopped
 SLOW_DISTANCE = MAX_DISTANCE - STOPPED_DISTANCE #: Distance amount where vehicle slows down
 
