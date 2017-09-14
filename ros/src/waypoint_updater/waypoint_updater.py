@@ -81,8 +81,7 @@ class WaypointUpdater(object):
             else:
                 # Slow down and stop
                 for i, waypoint in enumerate(lookahead_waypoints):
-                    index = car_index + i
-                    d, s = self.get_distance_speed_tuple(index)
+                    d, s = self.get_distance_speed_tuple(car_index + i)
                     waypoint.twist.twist.linear.x = s
                     if i == 0:
                         rospy.logwarn("WPU BRAKE: %s m | %s mph", d, s / MPH_TO_MPS)
