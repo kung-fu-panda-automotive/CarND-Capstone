@@ -116,10 +116,11 @@ class WaypointUpdater(object):
         """ Return tuple of distance from traffic light
             and target speed for slowing down """
         d = waypoint_helper.distance(self.base_waypoints, index, self.traffic_index)
-        if d < STOPPED_DISTANCE:
-            return d, 0.0
-        else:
-            return d, (d - STOPPED_DISTANCE) / SLOW_DISTANCE * MAX_SPEED
+        speed = 0.0
+
+        if d > STOPPED_DISTANCE:
+            speed = (d - STOPPED_DISTANCE) / SLOW_DISTANCE * MAX_SPEED
+        return d, speed
 
     def get_waypoint_velocity(self, waypoint):
         # pylint: disable=no-self-use
