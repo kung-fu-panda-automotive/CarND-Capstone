@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ This node will publish waypoints from the car's current position
-to some `x` distance ahead with respective target speeds for each waypoint.
+to some distance ahead with respective target speeds for each waypoint.
 """
 
 import rospy
@@ -14,10 +14,13 @@ import waypoint_helper
 
 MPH_TO_MPS = 0.44704
 MAX_SPEED = 10.0 * MPH_TO_MPS #: Vehicle speed limit
-LOOKAHEAD_WPS = 20  #: Number of waypoints we will publish
+LOOKAHEAD_WPS = 50 #: Number of waypoints we will publish
 STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
-MIN_DISTANCE = 10.0 #: Minimum distance from the traffic light to consider stopping
-MAX_DISTANCE = 30.0 #: Maximum distance from the traffic light to consider stopping
+MIN_DISTANCE = 22.5 #: Minimum distance from away from traffic light
+MAX_DISTANCE = 45.0 #: Maximum distance from the traffic light to stop
+DELTA_DISTANCE = 7.5 #: Buffer distance which is where the car must be completely stopped
+STOPPED_DISTANCE = MIN_DISTANCE + DELTA_DISTANCE #: Meters from light where the car is stopped
+SLOW_DISTANCE = MAX_DISTANCE - STOPPED_DISTANCE #: Distance amount where vehicle slows down
 
 class WaypointUpdater(object):
     """Given the position and map this object publishes
@@ -57,6 +60,10 @@ class WaypointUpdater(object):
             # Where in base waypoints list the car is
             car_index = waypoint_helper.get_closest_waypoint_index(self.pose, self.base_waypoints)
 
+            # Get subset waypoints ahead
+            lookahead_waypoints = waypoint_helper.get_next_waypoints(self.base_waypoints,
+                                                                     car_index, LOOKAHEAD_WPS)
+
             # Traffic light must be in front and not too far ahead and new
             is_new = rospy.get_time() - self.traffic_time_received < STALE_TIME
             is_near_ahead = False
@@ -64,35 +71,29 @@ class WaypointUpdater(object):
             if (self.traffic_index - car_index) > 0:
                 d = waypoint_helper.distance(self.base_waypoints, car_index, self.traffic_index)
                 is_near_ahead = MIN_DISTANCE < d < MAX_DISTANCE
-                if is_near_ahead:
-                    rospy.logwarn("WPU: Distance from red light:%s", d)
 
-            # Ask to cruise or brake car
-            target_speed = MAX_SPEED
-            if is_near_ahead and is_new:
-                target_speed = 0.0
-
-            # Get subset waypoints ahead of vehicle and set target speeds
-            lookahead_waypoints = waypoint_helper.get_next_waypoints(self.base_waypoints,
-                                                                     car_index, LOOKAHEAD_WPS)
-            for waypoint in lookahead_waypoints:
-                waypoint.twist.twist.linear.x = target_speed
+            # Set target speeds
+            if not (is_near_ahead and is_new):
+                # Go full speed if no red traffic light
+                rospy.logwarn("WPU: CRUISE %s - %s", car_index, self.traffic_index)
+                for waypoint in lookahead_waypoints:
+                    waypoint.twist.twist.linear.x = MAX_SPEED
+            else:
+                # Slow down and stop
+                for i, waypoint in enumerate(lookahead_waypoints):
+                    index = car_index + i
+                    d, s = self.get_distance_speed_tuple(index)
+                    waypoint.twist.twist.linear.x = s
+                    if i == 0:
+                        rospy.logwarn("WPU BRAKE: %s m | %s mph", d, s / MPH_TO_MPS)
 
             # Publish
             lane = waypoint_helper.make_lane_object(self.frame_id, lookahead_waypoints)
             self.final_waypoints_pub.publish(lane)
             self.car_index_pub.publish(car_index)
 
-            # Print some stuff for debugging
-            if car_index != self.previous_car_index:
-                self.previous_car_index = car_index
-                if is_near_ahead and is_new:
-                    rospy.logwarn("WPU:BRAKE!car-%s:light-%s", car_index, self.traffic_index)
-                else:
-                    rospy.logwarn("WPU:CRUISE!car-%s:light-%s", car_index, self.traffic_index)
-
     def pose_cb(self, msg):
-        """  Update vehicle location """
+        """ Update vehicle location """
         self.pose = msg.pose # store location (x, y)
         self.frame_id = msg.header.frame_id
 
@@ -110,6 +111,15 @@ class WaypointUpdater(object):
         # pylint: disable=no-self-use
         """ Consider obstacles when setting waypoint velocity"""
         pass
+
+    def get_distance_speed_tuple(self, index):
+        """ Return tuple of distance from traffic light
+            and target speed for slowing down """
+        d = waypoint_helper.distance(self.base_waypoints, index, self.traffic_index)
+        if d < STOPPED_DISTANCE:
+            return d, 0.0
+        else:
+            return d, (d - STOPPED_DISTANCE) / SLOW_DISTANCE * MAX_SPEED
 
     def get_waypoint_velocity(self, waypoint):
         # pylint: disable=no-self-use
