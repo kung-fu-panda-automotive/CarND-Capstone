@@ -75,16 +75,12 @@ class WaypointUpdater(object):
             # Set target speeds
             if not (is_near_ahead and is_new):
                 # Go full speed if no red traffic light
-                rospy.logwarn("WPU: CRUISE %s - %s", car_index, self.traffic_index)
                 for waypoint in lookahead_waypoints:
                     waypoint.twist.twist.linear.x = MAX_SPEED
             else:
                 # Slow down and stop
                 for i, waypoint in enumerate(lookahead_waypoints):
-                    d, s = self.get_distance_speed_tuple(car_index + i)
-                    waypoint.twist.twist.linear.x = s
-                    if i == 0:
-                        rospy.logwarn("WPU BRAKE: %s m | %s mph", d, s / MPH_TO_MPS)
+                    _, waypoint.twist.twist.linear.x = self.get_distance_speed_tuple(car_index + i)
 
             # Publish
             lane = waypoint_helper.make_lane_object(self.frame_id, lookahead_waypoints)
