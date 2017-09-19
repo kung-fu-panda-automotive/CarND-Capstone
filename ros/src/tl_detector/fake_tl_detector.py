@@ -105,8 +105,9 @@ class TLDetector(object):
 
         for light in msg.lights:
 
-            if light.state != TrafficLight.RED:
+            if light.state == TrafficLight.GREEN:
                 continue
+
             p = light.pose.pose.position
             traffic_index = self.traffic_map[(p.x, p.y)]
 
