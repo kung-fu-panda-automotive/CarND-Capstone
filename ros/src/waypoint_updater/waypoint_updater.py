@@ -12,15 +12,18 @@ from styx_msgs.msg import Lane
 #from styx_msgs.msg import TrafficLight
 import waypoint_helper
 
+SPEED_MPH = 45.0 #: Vehicle Speed limit in mph
 MPH_TO_MPS = 0.44704
-MAX_SPEED = 10.0 * MPH_TO_MPS #: Vehicle speed limit
-LOOKAHEAD_WPS = 50 #: Number of waypoints we will publish
+MAX_SPEED = SPEED_MPH * MPH_TO_MPS #: Vehicle speed limit in m/s
+LOOKAHEAD_WPS = 200 #: Number of waypoints we will publish
 STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
-MIN_DISTANCE = 23.0 #: Minimum distance from away from traffic light
-MAX_DISTANCE = 40.0 #: Maximum distance from the traffic light to stop
-DELTA_DISTANCE = 7.0 #: Buffer distance which is where the car must be completely stopped
-STOPPED_DISTANCE = MIN_DISTANCE + DELTA_DISTANCE #: Meters from light where the car is stopped
-SLOW_DISTANCE = MAX_DISTANCE - STOPPED_DISTANCE #: Distance amount where vehicle slows down
+MIN_DISTANCE = 22.0 #: Minimum distance from away from traffic light
+DELTA_DISTANCE = 8.0 #: Buffer distance to give time to completely stop
+STOPPED_DISTANCE = DELTA_DISTANCE + MIN_DISTANCE #: Meters from light where the car is stopped
+SLOW_DISTANCE = SPEED_MPH * 1.5 #: Distance amount where vehicle slows down
+# NOTE: For SLOW_DISTANCE tweak coefficient as necessary
+# > 1.5 for more gradual slowdown, < 1.5 for more abrupt stopping
+MAX_DISTANCE = SLOW_DISTANCE + STOPPED_DISTANCE #: Maximum distance from the traffic light to stop
 
 class WaypointUpdater(object):
     """Given the position and map this object publishes
@@ -75,12 +78,16 @@ class WaypointUpdater(object):
             # Set target speeds
             if not (is_near_ahead and is_new):
                 # Go full speed if no red traffic light
+                rospy.logwarn("WPU: CRUISE %s - %s", car_index, self.traffic_index)
                 for waypoint in lookahead_waypoints:
                     waypoint.twist.twist.linear.x = MAX_SPEED
             else:
                 # Slow down and stop
                 for i, waypoint in enumerate(lookahead_waypoints):
-                    _, waypoint.twist.twist.linear.x = self.get_distance_speed_tuple(car_index + i)
+                    d, s = self.get_distance_speed_tuple(car_index + i)
+                    waypoint.twist.twist.linear.x = s
+                    if i == 0:
+                        rospy.logwarn("WPU BRAKE: %s m | %s mph", d, s / MPH_TO_MPS)
 
             # Publish
             lane = waypoint_helper.make_lane_object(self.frame_id, lookahead_waypoints)
@@ -93,7 +100,7 @@ class WaypointUpdater(object):
         self.frame_id = msg.header.frame_id
 
     def base_waypoints_cb(self, msg):
-        """ We store the given map """
+        """ Store the given map """
         # msg: styx_msgs.msg.lane
         self.base_waypoints = msg.waypoints
 
