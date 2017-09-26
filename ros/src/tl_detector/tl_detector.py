@@ -1,15 +1,24 @@
 #!/usr/bin/env python
-""" This is where we will write the real Traffic Lights Detector
-Use fake_tl_detector for now for testing
-check out tl_detector_template.py
-as provided by Udacity for ideas to implement this
+#-------------------------------------------------------------------------------
+# Author: Lukasz Janyst <lukasz@jany.st>
+# Date:   26.09.2017
+#-------------------------------------------------------------------------------
+
+"""
+A Traffic Light Detector ROS Node
 """
 
 import rospy
-from fake_tl_detector import TLDetector
+from dummy_detector import DummyDetector
 
 if __name__ == '__main__':
     try:
-        TLDetector()
+        detector_type = rospy.get_param("/traffic_light_detector")
+        if detector_type.lower() == 'dummy':
+            detector = DummyDetector()
+        else:
+            raise RuntimeError('AAA')
+
+        detector.loop()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start traffic node.')
