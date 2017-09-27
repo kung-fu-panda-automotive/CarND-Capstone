@@ -16,13 +16,13 @@ SPEED_MPH = 10.0 #: Vehicle Speed limit in mph
 MPH_TO_MPS = 0.44704
 MAX_SPEED = SPEED_MPH * MPH_TO_MPS #: Vehicle speed limit in m/s
 LOOKAHEAD_WPS = 200 #: Number of waypoints we will publish
-STALE_TIME = 2.0 #: Time since that indicates it is relatively new data
+STALE_TIME = 0.5 #: Time since that indicates it is relatively new data
 MIN_DISTANCE = 22.0 #: Minimum distance from away from traffic light
 DELTA_DISTANCE = 8.0 #: Buffer distance to give time to completely stop
 STOPPED_DISTANCE = DELTA_DISTANCE + MIN_DISTANCE #: Meters from light where the car is stopped
-SLOW_DISTANCE = SPEED_MPH * 1.5 #: Distance amount where vehicle slows down
+SLOW_DISTANCE = SPEED_MPH ** 1.175 #: Distance amount where vehicle slows down
 # NOTE: For SLOW_DISTANCE tweak coefficient as necessary
-# > 1.5 for more gradual slowdown, < 1.5 for more abrupt stopping
+# > 1.175 for more gradual slowdown, < 1.175 for more abrupt stopping
 MAX_DISTANCE = SLOW_DISTANCE + STOPPED_DISTANCE #: Maximum distance from the traffic light to stop
 
 class WaypointUpdater(object):
@@ -118,6 +118,9 @@ class WaypointUpdater(object):
 
         if d > STOPPED_DISTANCE:
             speed = (d - STOPPED_DISTANCE) / SLOW_DISTANCE * MAX_SPEED
+
+        if d < STOPPED_DISTANCE and d > MIN_DISTANCE:
+            speed = 0.0
         return d, speed
 
     def get_waypoint_velocity(self, waypoint):
