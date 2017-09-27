@@ -37,6 +37,9 @@ class PID(object):
         self.int_val = 0.0
         self.last_int_val = 0.0
 
+        if self.filter is not None:
+            self.filter.last_val = 0.0
+
     def step(self, error, sample_time):
         """
         Given the CTE (cross track error) and the time elapsed

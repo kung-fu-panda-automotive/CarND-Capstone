@@ -66,6 +66,5 @@ class Controller(object):
             return steering_angle
         # dbw is not enabled (manual override) so resetting pid's and filters
         self.steer_pid.reset()
-        self.steer_filter.last_val = 0.0
 
         return 0.0
