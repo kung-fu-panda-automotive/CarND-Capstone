@@ -16,8 +16,8 @@
     <include file="$(find waypoint_updater)/launch/waypoint_updater.launch"/>
 
     <!-- Traffic Light Detector Params -->
-    <param name="traffic_light_detector" type="str" value="dummy" />
-    <!-- <param name="traffic_light_detector" type="str" value="dnn" /> -->
+    <!-- <param name="traffic_light_detector" type="str" value="dummy" /> -->
+    <param name="traffic_light_detector" type="str" value="real" />
 
     <!--Traffic Light Detector Node -->
     <include file="$(find tl_detector)/launch/tl_detector.launch"/>
