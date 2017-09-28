@@ -4,13 +4,13 @@ Helper functions for waypoints_updater
 # pylint: disable=invalid-name
 
 from math import cos, sin, sqrt
+from copy import deepcopy
 
 import rospy
 import numpy as np
 import tf
 
 from styx_msgs.msg import Lane
-
 
 def distance(waypoints, p1, p2):
     """ Get total distance between two waypoints given their index"""
@@ -112,7 +112,7 @@ def get_closest_waypoint_index(pose, waypoints):
 def get_next_waypoints(waypoints, i, n):
     """Returns a list of n waypoints ahead of the vehicle"""
     m = min(len(waypoints), i + n)
-    return waypoints[i:m]
+    return deepcopy(waypoints[i:m])
 
 
 def fit_polynomial(waypoints, degree):
