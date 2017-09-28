@@ -65,7 +65,7 @@ class Detector(object):
         #-----------------------------------------------------------------------
         config_string = rospy.get_param("/traffic_light_config")
         config = yaml.load(config_string)
-        self.stop_camera_info = config['camera_info']
+        self.camera_info = config['camera_info']
         self.stop_line_positions = [Point(x, y) for x, y in config['stop_line_positions']]
 
         self.stop_map = {}
