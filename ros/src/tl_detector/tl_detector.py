@@ -10,6 +10,7 @@ A Traffic Light Detector ROS Node
 
 import rospy
 from dummy_detector import DummyDetector
+from real_detector import RealDetector
 
 if __name__ == '__main__':
     try:
@@ -17,7 +18,7 @@ if __name__ == '__main__':
         if detector_type.lower() == 'dummy':
             detector = DummyDetector()
         else:
-            raise RuntimeError('AAA')
+            detector = RealDetector()
 
         detector.loop()
     except rospy.ROSInterruptException:

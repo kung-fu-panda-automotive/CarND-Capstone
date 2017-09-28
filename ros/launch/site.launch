@@ -16,6 +16,9 @@
     <param name="traffic_light_config" textfile="$(find tl_detector)/site_traffic_light_config.yaml" />
 
     <!-- Traffic Light Detector Params -->
+    <!-- <param name="traffic_light_detector" type="str" value="dummy" /> -->
+    <param name="traffic_light_detector" type="str" value="real" />
+
     <param name="traffic_light_detector" type="str" value="dummy" />
     <!-- <param name="traffic_light_detector" type="str" value="dnn" /> -->
 
