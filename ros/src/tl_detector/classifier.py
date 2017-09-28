@@ -1,6 +1,9 @@
 #-------------------------------------------------------------------------------
 # Author: Lukasz Janyst <lukasz@jany.st>
 # Date:   28.09.2017
+#
+# The classifier part of the model is based on the work of Alexey Simonov
+# who later left the team to lead his own.
 #-------------------------------------------------------------------------------
 
 """
