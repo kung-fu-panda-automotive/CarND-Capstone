@@ -371,6 +371,11 @@ valid-metaclass-classmethod-first-arg=mcs
 # warning.
 exclude-protected=_asdict,_fields,_replace,_source,_make
 
+# List of decorators that produce context managers, such as
+# contextlib.contextmanager. Add to this list to register other decorators that
+# produce valid context managers.
+contextmanager-decorators=tf_contextlib.contextmanager
+
 
 [EXCEPTIONS]
 
