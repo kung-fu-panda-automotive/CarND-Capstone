@@ -72,8 +72,8 @@ class DBWNode(object):
 
         # read ros parameters
         vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
-        # fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
-        # brake_deadband = rospy.get_param('~brake_deadband', .1)
+        fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
+        brake_deadband = rospy.get_param('~brake_deadband', .1)
         wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
         decel_limit = rospy.get_param('~decel_limit', -5)
         accel_limit = rospy.get_param('~accel_limit', 1.)
@@ -88,10 +88,14 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd', BrakeCmd, queue_size=1)
 
         self.controller = Controller(max_steer_angle)
+        # pylint disable=E1121
         self.speed_controller = SpeedController(vehicle_mass,
                                                 wheel_radius,
                                                 accel_limit,
-                                                decel_limit)
+                                                decel_limit,
+                                                brake_deadband,
+                                                fuel_capacity)
+                                                
         self.yaw_controller = YawController(wheel_base,
                                             steer_ratio,
                                             min_speed,
@@ -138,13 +142,10 @@ class DBWNode(object):
                                                                 current_velocity,
                                                                 0.5)
 
-                # Apply full deacceleration if target velocity is zero
-                # brake = 20000 if self.twist.linear.x == 0 else brake
-
             else:
                 # if too few waypoints and publish a hard break
                 rospy.logwarn("Number of waypoint received: %s", len(self.waypoints))
-                throttle, brake, steer = 0, 20000, 0
+                throttle, brake, steer = 0, 2000, 0
 
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer + PREDICTIVE_STEERING * yaw_steer)
