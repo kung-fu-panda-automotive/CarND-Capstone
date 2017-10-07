@@ -95,7 +95,7 @@ class DBWNode(object):
                                                 decel_limit,
                                                 brake_deadband,
                                                 fuel_capacity)
-                                                
+
         self.yaw_controller = YawController(wheel_base,
                                             steer_ratio,
                                             min_speed,
