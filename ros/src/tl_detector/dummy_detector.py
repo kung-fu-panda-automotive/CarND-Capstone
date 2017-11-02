@@ -26,6 +26,7 @@ class DummyDetector(Detector):
 
         self.tl_map = {}
         self.tl_map_filled = False
+        self.classifier_initialized = True
 
     #---------------------------------------------------------------------------
     def traffic_cb(self, msg):
