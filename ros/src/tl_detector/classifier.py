@@ -161,7 +161,7 @@ class Classifier(object):
         boxes, scores = sess.run([self.det_boxes, self.det_scores],
                                  feed_dict={self.det_input: img_expanded})
         img_size = Size(img.shape[1], img.shape[0])
-        detected_boxes = decode_boxes(img_size, boxes[0], scores[0], 0.7)
+        detected_boxes = decode_boxes(img_size, boxes[0], scores[0], 0.9)
 
         #-----------------------------------------------------------------------
         # Classify the boxes
