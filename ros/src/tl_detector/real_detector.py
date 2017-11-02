@@ -32,25 +32,16 @@ class RealDetector(Detector):
         Detector.__init__(self)
 
         #-----------------------------------------------------------------------
-        # Create the classifier and download the models
-        #-----------------------------------------------------------------------
-        self.classifier = Classifier(rospkg.get_ros_home())
-        if self.classifier.need_models():
-            rospy.logwarn('Need to download models, it may take a while.')
-            self.classifier.download_models()
-            rospy.logwarn('Finished downloading!')
-        self.classifier.initialize()
-        rospy.logwarn('Classifier initialized!')
-
-        #-----------------------------------------------------------------------
         # Subscribe to the image feed and initialize other stuff
         #-----------------------------------------------------------------------
-        rospy.Subscriber('/image_color', Image, self.image_cb, queue_size=1)
         self.listener = tf.TransformListener()
         self.field_of_view = math.pi/4
         self.state_count = 0
         self.state = Classifier.UNKNOWN
         self.bridge = CvBridge()
+        self.classifier_initialized = False
+        self.classifier = None
+        rospy.Subscriber('/image_color', Image, self.image_cb, queue_size=1)
 
     #---------------------------------------------------------------------------
     def image_cb(self, msg):
@@ -64,6 +55,26 @@ class RealDetector(Detector):
         if self.base_waypoints is None or self.car_index is None:
             return
 
+        #-----------------------------------------------------------------------
+        # Create the classifier and download the models if necessary
+        #-----------------------------------------------------------------------
+        if self.classifier is None:
+            self.classifier = Classifier(rospkg.get_ros_home())
+            if self.classifier.need_models():
+                rospy.logwarn('Need to download models, it may take a while.')
+                self.classifier.download_models()
+                rospy.logwarn('Finished downloading!')
+            self.classifier.initialize()
+            rospy.logwarn('Classifier initialized!')
+            self.classifier_initialized = True
+
+        if not self.classifier_initialized:
+            return
+
+        #-----------------------------------------------------------------------
+        # Get the next stop line and detect the state of the traffic light
+        # if necessary
+        #-----------------------------------------------------------------------
         stop_wp = self.get_next_stop_wp()
         if stop_wp is None:
             self.best_stop_line_index = None
@@ -128,7 +139,7 @@ class RealDetector(Detector):
                                            rospy.Duration(0.1))
             stop_point = self.listener.transformPoint("/base_link", stop_point)
         except (tf.Exception, tf.LookupException, tf.ConnectivityException):
-            rospy.logerr("Failed to find camera to map transform")
+            rospy.logwarn("Failed to find camera to map transform")
             return None
 
         x = stop_point.point.x
