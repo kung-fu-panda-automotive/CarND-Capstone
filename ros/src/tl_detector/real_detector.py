@@ -40,6 +40,7 @@ class RealDetector(Detector):
         self.state = Classifier.UNKNOWN
         self.bridge = CvBridge()
         self.classifier_initialized = False
+        self.classifier_broken = False
         self.classifier = None
         rospy.Subscriber('/image_color', Image, self.image_cb, queue_size=1)
 
@@ -62,11 +63,21 @@ class RealDetector(Detector):
             self.classifier = Classifier(rospkg.get_ros_home())
             if self.classifier.need_models():
                 rospy.logwarn('Need to download models, it may take a while.')
-                self.classifier.download_models()
-                rospy.logwarn('Finished downloading!')
-            self.classifier.initialize()
-            rospy.logwarn('Classifier initialized!')
-            self.classifier_initialized = True
+                if self.classifier.download_models():
+                    rospy.logwarn('Finished downloading!')
+                else:
+                    rospy.logerr('Unable to download models! '
+                                 'Please try downloading by hand!')
+                    self.classifier_broken = True
+
+            if not self.classifier_broken:
+                self.classifier.initialize()
+                rospy.logwarn('Classifier initialized!')
+                self.classifier_initialized = True
+
+        if self.classifier_broken:
+            rospy.logerr('Cannot detect traffic lights, the TensorFlow models '
+                         'were not downloaded properly.')
 
         if not self.classifier_initialized:
             return

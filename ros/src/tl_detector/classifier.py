@@ -10,6 +10,7 @@
 A Traffic Light Classifier
 """
 
+import hashlib
 import urllib
 import os
 from collections import namedtuple
@@ -23,8 +24,14 @@ import numpy as np
 # Model URLS
 #-------------------------------------------------------------------------------
 #pylint: disable=line-too-long
-CLASSIFIER_MODEL = 'https://s3-eu-west-1.amazonaws.com/ljanyst-udacity/traffic-lights-classifier.pb'
-DETECTOR_MODEL = 'https://s3-eu-west-1.amazonaws.com/ljanyst-udacity/traffic-lights-detector-faster-r-cnn.pb'
+Model = namedtuple('Model', ['url', 'md5sum'])
+
+CLASSIFIER_MODEL = Model(
+    'https://s3-eu-west-1.amazonaws.com/ljanyst-udacity/traffic-lights-classifier.pb',
+    'ef241217df39131ae51c1f49da5b6e1d')
+DETECTOR_MODEL = Model(
+    'https://s3-eu-west-1.amazonaws.com/ljanyst-udacity/traffic-lights-detector-faster-r-cnn.pb',
+    'ba5b7d669a8e3d6f23917daef8149925')
 
 #-------------------------------------------------------------------------------
 # Helper structs
@@ -48,6 +55,16 @@ def decode_boxes(img_size, boxes, scores, threshold):
         dec_boxes.append(dec_box)
     return dec_boxes
 
+#-------------------------------------------------------------------------------
+def md5sum(filename):
+    """
+    Compute the MD5 checksum
+    """
+    hash_md5 = hashlib.md5()
+    with open(filename, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 #-------------------------------------------------------------------------------
 class Classifier(object):
@@ -63,8 +80,8 @@ class Classifier(object):
     #---------------------------------------------------------------------------
     def __init__(self, datadir):
         self.datadir = datadir
-        self.classifier_graph = self.datadir+'/'+os.path.basename(CLASSIFIER_MODEL)
-        self.detector_graph = self.datadir+'/'+os.path.basename(DETECTOR_MODEL)
+        self.classifier_graph = self.datadir+'/'+os.path.basename(CLASSIFIER_MODEL.url)
+        self.detector_graph = self.datadir+'/'+os.path.basename(DETECTOR_MODEL.url)
 
         self.session = None
         self.det_input = None
@@ -79,8 +96,12 @@ class Classifier(object):
         """
         Check if the model graphs need to be downloaded from the web
         """
-        for graph in [self.classifier_graph, self.detector_graph]:
+        for graph, md5 in [(self.classifier_graph, CLASSIFIER_MODEL.md5sum),
+                           (self.detector_graph, DETECTOR_MODEL.md5sum)]:
             if not os.path.exists(graph):
+                return True
+            local_md5 = md5sum(graph)
+            if local_md5 != md5:
                 return True
         return False
 
@@ -89,8 +110,20 @@ class Classifier(object):
         """
         Download the models from the web
         """
-        urllib.urlretrieve(CLASSIFIER_MODEL, self.classifier_graph)
-        urllib.urlretrieve(DETECTOR_MODEL, self.detector_graph)
+        #pylint: disable=broad-except
+        try:
+            os.remove(self.classifier_graph)
+            os.remove(self.detector_graph)
+        except Exception:
+            pass
+
+        try:
+            urllib.urlretrieve(CLASSIFIER_MODEL.url, self.classifier_graph)
+            urllib.urlretrieve(DETECTOR_MODEL.url, self.detector_graph)
+        except Exception:
+            return False
+
+        return not self.need_models()
 
     #---------------------------------------------------------------------------
     def initialize(self):
